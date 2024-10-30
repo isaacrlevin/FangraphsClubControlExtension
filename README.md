@@ -22,4 +22,4 @@ Simple Chromium-based browser extension that adds a additional data to the leade
 - Select the `src` folder you built above.
 
 ## Buy me a Coffee
-If you like this extension, feel free to [buy me a coffee!](buymeacoffee.com/isaacrlevin)
+If you like this extension, feel free to [buy me a coffee!](https://buymeacoffee.com/isaacrlevin)
