@@ -21,3 +21,5 @@ Simple Chromium-based browser extension that adds a additional data to the leade
 - Click "Load unpacked",
 - Select the `src` folder you built above.
 
+## Buy me a Coffee
+If you like this extension, feel free to [buy me a coffee!](buymeacoffee.com/isaacrlevin)
