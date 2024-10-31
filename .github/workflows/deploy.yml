@@ -37,7 +37,7 @@ jobs:
       - name: Run build script
         working-directory: src
         run: |
-          chmod +x src/build.sh
+          chmod +x build.sh
           ./build.sh ${{ matrix.browser }}
 
       - name: Update version in manifest.json
