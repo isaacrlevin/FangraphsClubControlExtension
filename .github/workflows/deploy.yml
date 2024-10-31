@@ -124,7 +124,7 @@ jobs:
       - name: Get the latest tag
         id: get_tag
         run: |
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "0.0.0")
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "1.0.0")
           echo "tag=$latest_tag" >> $GITHUB_ENV
 
       - name: Increment version number
@@ -137,10 +137,10 @@ jobs:
           echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: Create new tag
-        run: |
-          new_version=${{ env.new_version }}
-          git tag $new_version
-          git push origin $new_version
+        uses: cardinalby/git-tag-action@master
+        env:
+          TAG: ${{ env.new_version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub release
         id: create_release
