@@ -23,28 +23,28 @@ jobs:
         id: get_tag
         run: |
           latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "0.0.0")
-          echo "::set-output name=tag::$latest_tag"
+          echo "tag=$latest_tag" >> $GITHUB_ENV
 
       - name: Increment version number
         id: increment_version
         run: |
-          tag=${{ steps.get_tag.outputs.tag }}
+          tag=${{ env.tag }}
           IFS='.' read -r -a version_parts <<< "$tag"
           version_parts[2]=$((version_parts[2] + 1))
           new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
-          echo "::set-output name=new_version::$new_version"
-
-      - name: Update version in manifest.json
-        run: |
-          new_version=${{ steps.increment_version.outputs.new_version }}
-          if [ "${{ matrix.browser }}" == "chrome" ]; then
-            jq --arg version "$new_version" '.version = $version' built-chrome/manifest.json > built-chrome/manifest.json.tmp && mv built-chrome/manifest.json.tmp built-chrome/manifest.json
-          elif [ "${{ matrix.browser }}" == "firefox" ]; then
-            jq --arg version "$new_version" '.version = $version' built-firefox/manifest.json > built-firefox/manifest.json.tmp && mv built-firefox/manifest.json.tmp built-firefox/manifest.json
-          fi
+          echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: Run build script
         run: ./build.sh ${{ matrix.browser }}
+
+      - name: Update version in manifest.json
+        run: |
+          new_version=${{ env.new_version }}
+          if [ "${{ matrix.browser }}" == "chrome" ]; then
+          jq --arg version "$new_version" '.version = $version' built-chrome/manifest.json > built-chrome/manifest.json
+          elif [ "${{ matrix.browser }}" == "firefox" ]; then
+          jq --arg version "$new_version" '.version = $version' built-firefox/manifest.json > built-firefox/manifest.json
+          fi
 
       - name: Zip Chrome extension
         if: matrix.browser == 'chrome'
@@ -122,20 +122,20 @@ jobs:
         id: get_tag
         run: |
           latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "0.0.0")
-          echo "::set-output name=tag::$latest_tag"
+          echo "tag=$latest_tag" >> $GITHUB_ENV
 
       - name: Increment version number
         id: increment_version
         run: |
-          tag=${{ steps.get_tag.outputs.tag }}
+          tag=${{ env.tag }}
           IFS='.' read -r -a version_parts <<< "$tag"
           version_parts[2]=$((version_parts[2] + 1))
           new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
-          echo "::set-output name=new_version::$new_version"
+          echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: Create new tag
         run: |
-          new_version=${{ steps.increment_version.outputs.new_version }}
+          new_version=${{ env.new_version }}
           git tag $new_version
           git push origin $new_version
 
@@ -145,8 +145,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.increment_version.outputs.new_version }}
-          release_name: Release ${{ steps.increment_version.outputs.new_version }}
+          tag_name: ${{ env.new_version }}
+          release_name: Release ${{ env.new_version }}
           draft: false
           prerelease: false
 
