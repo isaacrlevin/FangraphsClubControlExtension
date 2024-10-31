@@ -1,6 +1,6 @@
 # Add Contract Data to Fangraphs Leaders Page Browser Extension
 
-Simple browser extension that adds a additional data to the leaderboards page of Fangraphs.com. The purpose of this extension is to provide easier access to when a baseball player becomes a free agent or in baseball terms "club control".
+Simple Chromium-based browser extension that adds a additional data to the leaderboards page of Fangraphs.com. The purpose of this extension is to provide easier access to when a baseball player becomes a free agent or in baseball terms "club control".
 
 
 ![alt text](/images/demo.gif)
@@ -26,10 +26,12 @@ If you hover over the column in a particular player row, a window will appear sh
 
 - Clone repo
 
-**To install your local build to Chrome**
+**To install your local build to Chrome/Edge**
 
 - Open Chrome and go to `chrome://extensions`
 - Enable "Developer mode",
 - Click "Load unpacked",
 - Select the `src` folder you built above.
 
+## Buy me a Coffee
+If you like this extension, feel free to [buy me a coffee!](https://buymeacoffee.com/isaacrlevin)
