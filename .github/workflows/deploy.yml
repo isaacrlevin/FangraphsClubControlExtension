@@ -58,14 +58,14 @@ jobs:
 
       - name: Upload Chrome zip artifact
         if: matrix.browser == 'chrome'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: built-chrome
           path: built-chrome.zip
 
       - name: Upload Firefox zip artifact
         if: matrix.browser == 'firefox'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: built-firefox
           path: built-firefox.zip
@@ -83,14 +83,14 @@ jobs:
 
       - name: Download Chrome zip artifact
         if: matrix.browser == 'chrome'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: built-chrome
           path: .
 
       - name: Download Firefox zip artifact
         if: matrix.browser == 'firefox'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: built-firefox
           path: .
@@ -108,64 +108,76 @@ jobs:
           echo "Deploying Firefox extension"
 
   release:
-      needs: deploy
-      runs-on: ubuntu-latest
+    needs: deploy
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-        - name: Fetch all tags
-          run: git fetch --tags
+      - name: Fetch all tags
+        run: git fetch --tags
 
-        - name: Get the latest tag
-          id: get_tag
-          run: |
-            latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "0.0.0")
-            echo "::set-output name=tag::$latest_tag"
+      - name: Get the latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "0.0.0")
+          echo "::set-output name=tag::$latest_tag"
 
-        - name: Increment version number
-          id: increment_version
-          run: |
-            tag=${{ steps.get_tag.outputs.tag }}
-            IFS='.' read -r -a version_parts <<< "$tag"
-            version_parts[2]=$((version_parts[2] + 1))
-            new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
-            echo "::set-output name=new_version::$new_version"
+      - name: Increment version number
+        id: increment_version
+        run: |
+          tag=${{ steps.get_tag.outputs.tag }}
+          IFS='.' read -r -a version_parts <<< "$tag"
+          version_parts[2]=$((version_parts[2] + 1))
+          new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
+          echo "::set-output name=new_version::$new_version"
 
-        - name: Create new tag
-          run: |
-            new_version=${{ steps.increment_version.outputs.new_version }}
-            git tag $new_version
-            git push origin $new_version
+      - name: Create new tag
+        run: |
+          new_version=${{ steps.increment_version.outputs.new_version }}
+          git tag $new_version
+          git push origin $new_version
 
-        - name: Create GitHub release
-          id: create_release
-          uses: actions/create-release@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            tag_name: ${{ steps.increment_version.outputs.new_version }}
-            release_name: Release ${{ steps.increment_version.outputs.new_version }}
-            draft: false
-            prerelease: false
+      - name: Create GitHub release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.increment_version.outputs.new_version }}
+          release_name: Release ${{ steps.increment_version.outputs.new_version }}
+          draft: false
+          prerelease: false
 
-        - name: Upload Chrome zip to release
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: built-chrome.zip
-            asset_name: built-chrome.zip
-            asset_content_type: application/zip
+      - name: Download Chrome zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built-chrome
+          path: .
 
-        - name: Upload Firefox zip to release
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: built-firefox.zip
-            asset_name: built-firefox.zip
-            asset_content_type: application/zip
+      - name: Download Firefox zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built-firefox
+          path: .
+
+      - name: Upload Chrome zip to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: built-chrome.zip
+          asset_name: built-chrome.zip
+          asset_content_type: application/zip
+
+      - name: Upload Firefox zip to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: built-firefox.zip
+          asset_name: built-firefox.zip
+          asset_content_type: application/zip
