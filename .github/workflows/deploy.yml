@@ -22,7 +22,7 @@ jobs:
       - name: Get the latest tag
         id: get_tag
         run: |
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "0.0.0")
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "1.0.0")
           echo "tag=$latest_tag" >> $GITHUB_ENV
 
       - name: Increment version number
@@ -34,13 +34,12 @@ jobs:
           new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
           echo "new_version=$new_version" >> $GITHUB_ENV
 
-      - name: Change directory to src
-        run: cd src
-
       - name: Run build script
+        working-directory: src
         run: ./build.sh ${{ matrix.browser }}
 
       - name: Update version in manifest.json
+        working-directory: src
         run: |
           new_version=${{ env.new_version }}
           if [ "${{ matrix.browser }}" == "chrome" ]; then
@@ -51,9 +50,11 @@ jobs:
 
       - name: Zip Chrome extension
         if: matrix.browser == 'chrome'
+        working-directory: src
         run: zip -r built-chrome.zip built-chrome
 
       - name: Zip Firefox extension
+        working-directory: src
         if: matrix.browser == 'firefox'
         run: |
           cd built-firefox
@@ -64,14 +65,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: built-chrome
-          path: built-chrome.zip
+          path: src/built-chrome.zip
 
       - name: Upload Firefox zip artifact
         if: matrix.browser == 'firefox'
         uses: actions/upload-artifact@v4
         with:
           name: built-firefox
-          path: built-firefox.zip
+          path: src/built-firefox.zip
 
   deploy:
     needs: build
