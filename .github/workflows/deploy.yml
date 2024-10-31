@@ -34,6 +34,9 @@ jobs:
           new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
           echo "new_version=$new_version" >> $GITHUB_ENV
 
+      - name: Change directory to src
+        run: cd src
+
       - name: Run build script
         run: ./build.sh ${{ matrix.browser }}
 
@@ -78,9 +81,6 @@ jobs:
         browser: [chrome, firefox]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
       - name: Download Chrome zip artifact
         if: matrix.browser == 'chrome'
         uses: actions/download-artifact@v4
