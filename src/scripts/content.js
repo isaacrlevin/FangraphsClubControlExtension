@@ -123,6 +123,13 @@ function removeFreeAgentYearColumn() {
 function addFreeAgentYearColumn() {
   removeFreeAgentYearColumn();
 
+  if (
+    window.location.href.includes("team=,") ||
+    window.location.href.includes("team=0%2")
+  ) {
+    return;
+  }
+
   console.log(
     "Add Contract Data to Fangraphs Leaders Page Extension: Adding Free Agent Year Column"
   );
@@ -170,7 +177,7 @@ function addFreeAgentYearColumn() {
       newCell.classList.add("align-right");
       newCell.innerText = freeAgentYear;
       row.appendChild(newCell);
-       attachEventListeners();
+      attachEventListeners();
     }
   });
 }
@@ -259,48 +266,63 @@ function showHoverTable(event) {
     var table = document.getElementById("hover-table");
 
     if (playerData) {
-      table.innerHTML = `
-      <thead>
-        <tr>
-          <th style='width: 40%'>Contract Year</th>
-          <th style='width: 60%'>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${playerData.SalaryList.map(
-          (contract) => `
-          <tr>
-            <td style='width: 40%'>${contract.Year}</td>
-            <td style='width: 60%' data-stat="${
-              contract.Year
-            }" class="cell-painted   " data-contract-color="${
-            contract.Attribute
-          }">
-            ${
-              contract.Value.includes("ARB")
-                ? contract.Value
-                : convertToMillions(contract.Value)
-            }
-            </td>
-          </tr>
-        `
-        ).join("")}
-      </tbody>
-    `;
-    } else {
-      table.innerHTML = `
-      <thead>
-        <tr>
-          <th>No Data Available</th>
-        </tr>
-      </thead>
-    `;
-    }
-  }
+      // Clear existing content
+      table.innerHTML = "";
 
-  hoverTable.style.left = `${event.pageX + 10}px`;
-  hoverTable.style.top = `${event.pageY + 10}px`;
-  hoverTable.style.display = "block";
+      // Create thead
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      const thYear = document.createElement("th");
+      thYear.style.width = "40%";
+      thYear.textContent = "Contract Year";
+      const thStatus = document.createElement("th");
+      thStatus.style.width = "60%";
+      thStatus.textContent = "Status";
+      headerRow.appendChild(thYear);
+      headerRow.appendChild(thStatus);
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Create tbody
+      const tbody = document.createElement("tbody");
+
+      if (playerData) {
+        playerData.SalaryList.forEach((contract) => {
+          const row = document.createElement("tr");
+
+          const tdYear = document.createElement("td");
+          tdYear.style.width = "40%";
+          tdYear.textContent = contract.Year;
+          row.appendChild(tdYear);
+
+          const tdStatus = document.createElement("td");
+          tdStatus.style.width = "60%";
+          tdStatus.setAttribute("data-stat", contract.Year);
+          tdStatus.classList.add("cell-painted");
+          tdStatus.setAttribute("data-contract-color", contract.Attribute);
+          tdStatus.textContent = contract.Value.includes("ARB")
+            ? contract.Value
+            : convertToMillions(contract.Value);
+          row.appendChild(tdStatus);
+
+          tbody.appendChild(row);
+        });
+      } else {
+        const noDataRow = document.createElement("tr");
+        const noDataCell = document.createElement("th");
+        noDataCell.colSpan = 2;
+        noDataCell.textContent = "No Data Available";
+        noDataRow.appendChild(noDataCell);
+        tbody.appendChild(noDataRow);
+      }
+
+      table.appendChild(tbody);
+    }
+
+    hoverTable.style.left = `${event.pageX + 10}px`;
+    hoverTable.style.top = `${event.pageY + 10}px`;
+    hoverTable.style.display = "block";
+  }
 }
 
 // Function to hide the hover table
@@ -366,13 +388,6 @@ const initialObserver = new MutationObserver((mutations) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "updateDOM") {
-    const queryString = message.queryString;
-    qsUpdated = true;
-    removeFreeAgentYearColumn();
-  }
-});
 
 function getPayrollData() {
   const localStorageKey = "fangraphsFreeAgentData";
