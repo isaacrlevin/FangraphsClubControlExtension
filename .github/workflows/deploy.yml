@@ -50,6 +50,11 @@ jobs:
           jq --arg version "$new_version" '.version = $version' built-firefox/manifest.json > built-firefox/manifest.json
           fi
 
+      - name: Create version.txt
+        working-directory: src
+        run: |
+          echo "${{ env.new_version }}" > version.txt}
+
       - name: Zip Chrome extension
         if: matrix.browser == 'chrome'
         working-directory: src
@@ -75,6 +80,13 @@ jobs:
         with:
           name: built-firefox
           path: src/built-firefox.zip
+
+      - name: Upload version as artifact
+        if: matrix.browser == 'firefox'
+        uses: actions/upload-artifact@v4
+        with:
+          name: version
+          path: src/version.txt
 
   deploy:
     needs: build
@@ -118,29 +130,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch all tags
-        run: git fetch --tags
+      - name: Download Version artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: version
+          path: .
 
-      - name: Get the latest tag
-        id: get_tag
+      - name: Read version from version.txt
         run: |
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "1.0.0")
-          echo "tag=$latest_tag" >> $GITHUB_ENV
-
-      - name: Increment version number
-        id: increment_version
-        run: |
-          tag=${{ env.tag }}
-          IFS='.' read -r -a version_parts <<< "$tag"
-          version_parts[2]=$((version_parts[2] + 1))
-          new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
+          new_version=$(cat version.txt)
           echo "new_version=$new_version" >> $GITHUB_ENV
-
-      - name: Create new tag
-        uses: cardinalby/git-tag-action@master
-        env:
-          TAG: ${{ env.new_version }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Chrome zip artifact
         uses: actions/download-artifact@v4
