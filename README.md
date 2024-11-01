@@ -2,6 +2,13 @@
 
 Simple Chromium-based browser extension that adds a additional data to the leaderboards page of Fangraphs.com. The purpose of this extension is to provide easier access to when a baseball player becomes a free agent or in baseball terms "club control".
 
+## Install
+
+| Chrome                                                                 | Firefox                                                                 |
+|-----------------------------------------------------------------------|------------------------------------------------------------------------|
+| [![Chrome Web Store](https://fonts.gstatic.com/s/i/productlogos/chrome_store/v7/192px.svg)](https://chromewebstore.google.com/detail/add-contract-data-to-fang/oacghehmhnpfklelddmbllnnbklcjcap) | [![Firefox Addon](https://addons.mozilla.org/static-frontend/459ebe418a9783cd0b80bdd8b98e5faa.svg)](https://addons.mozilla.org/en-US/firefox/addon/contracts-on-fangraphs-leaders/) |
+
+## Demo
 
 ![alt text](/images/demo.gif)
 
@@ -13,12 +20,6 @@ Here is what the column means depending on status of player:
 If you hover over the column in a particular player row, a window will appear showing the current contract breakdown of that player, including any options they may have as part of that contract.
 
 ![alt text](/images/contract-breakdown.png)
-
-## Installation
-
-**Option 1 (recommended)** – Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/add-contract-data-to-fang/inacpeifhpojalcflhpomamailbofhob).
-
-**Option 2** – Install it from source (see below).
 
 ### Development
 

@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-
+    paths:
+      - 'src/**'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -90,6 +91,9 @@ jobs:
 
   deploy:
     needs: build
+    environment:
+      name: Deploy
+      url: ${{ steps.deploy.outputs.webapp-url }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -110,23 +114,6 @@ jobs:
           name: built-firefox
           path: .
 
-      - name: Upload Chrome extension to Chrome Web Store
-        if: matrix.browser == 'chrome'
-        run: |
-          # Add your Chrome Web Store deployment commands here
-          echo "Deploying Chrome extension"
-
-      - name: Upload Firefox extension to Firefox Add-On Store
-        if: matrix.browser == 'firefox'
-        run: |
-          # Add your Firefox Add-On Store deployment commands here
-          echo "Deploying Firefox extension"
-
-  release:
-    needs: deploy
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Download Version artifact
         uses: actions/download-artifact@v4
         with:
@@ -138,18 +125,6 @@ jobs:
           new_version=$(cat version.txt)
           echo "new_version=$new_version" >> $GITHUB_ENV
 
-      - name: Download Chrome zip artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: built-chrome
-          path: .
-
-      - name: Download Firefox zip artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: built-firefox
-          path: .
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -159,3 +134,21 @@ jobs:
           files: |
             built-chrome.zip
             built-firefox.zip
+
+      # - name: Publish Chrome
+      #   if: matrix.browser == 'chrome'
+      #   uses: maoserr/chrome_extension_publish@v1.0.3
+      #   with:
+      #     chrome_extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
+      #     client_id: ${{ secrets.CHROME_CLIENT_ID }}
+      #     refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      #     client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+      #     file: built-chrome.zip
+
+      # - name: Publish Firefox
+      #   if: matrix.browser == 'firefox'
+      #   uses: maoserr/firefox_extension_publish@v1.0.4
+      #   with:
+        #     api_key: ${{ secrets.FIREFOX_API_KEY }}
+      #     api_secret: ${{ secrets.FIREFOX_API_SECRET }}
+      #     file: built-firefox.zip
