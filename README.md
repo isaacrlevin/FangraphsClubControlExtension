@@ -6,7 +6,7 @@ Simple Chromium-based browser extension that adds a additional data to the leade
 
 | Chrome                                                                 | Firefox                                                                 |
 |-----------------------------------------------------------------------|------------------------------------------------------------------------|
-| [![Chrome Web Store](https://fonts.gstatic.com/s/i/productlogos/chrome_store/v7/192px.svg){:width="300px"}](https://chromewebstore.google.com/detail/add-contract-data-to-fang/oacghehmhnpfklelddmbllnnbklcjcap){:target="_blank" rel="noopener"} | [![Firefox Addon](https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/1920px-Firefox_logo%2C_2019.svg.png){:width="300px"}](https://addons.mozilla.org/en-US/firefox/addon/contracts-on-fangraphs-leaders/){:target="_blank" rel="noopener"} |
+| [![Chrome Web Store](https://fonts.gstatic.com/s/i/productlogos/chrome_store/v7/192px.svg){:width="100px"}](https://chromewebstore.google.com/detail/add-contract-data-to-fang/oacghehmhnpfklelddmbllnnbklcjcap){:target="_blank" rel="noopener"} | [![Firefox Addon](https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/1920px-Firefox_logo%2C_2019.svg.png){:width="100px"}](https://addons.mozilla.org/en-US/firefox/addon/contracts-on-fangraphs-leaders/){:target="_blank" rel="noopener"} |
 
 ## Demo
 
