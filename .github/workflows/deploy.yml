@@ -164,15 +164,6 @@ jobs:
           new_version=$(cat version.txt)
           echo "new_version=$new_version" >> $GITHUB_ENV
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.new_version }}
-          draft: false
-          prerelease: false
-          files: |
-            built-${{ matrix.browser }}.zip
-
       - name: Publish Chrome
         if: matrix.browser == 'chrome'
         uses: maoserr/chrome_extension_publish@v1.0.3
