@@ -47,9 +47,9 @@ jobs:
         run: |
           new_version=${{ env.new_version }}
           if [ "${{ matrix.browser }}" == "chrome" ]; then
-          jq --arg version "$new_version" '.version = $version' built-chrome/manifest.json > built-chrome/manifest.json
+            jq --arg version "$new_version" '.version = $version' built-chrome/manifest.json > tmp.$$.json && mv tmp.$$.json built-chrome/manifest.json
           elif [ "${{ matrix.browser }}" == "firefox" ]; then
-          jq --arg version "$new_version" '.version = $version' built-firefox/manifest.json > built-firefox/manifest.json
+            jq --arg version "$new_version" '.version = $version' built-firefox/manifest.json > tmp.$$.json && mv tmp.$$.json built-firefox/manifest.json
           fi
 
       - name: Create version.txt
