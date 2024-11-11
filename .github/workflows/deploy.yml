@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'src/**'
+      - '.github/workflows/deploy.yml'
 jobs:
   build:
     runs-on: ubuntu-latest
