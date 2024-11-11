@@ -89,8 +89,46 @@ jobs:
           name: version
           path: src/version.txt
 
-  deploy:
+  deploy-github:
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Chrome zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built-chrome
+          path: .
+
+      - name: Download Firefox zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built-firefox
+          path: .
+
+      - name: Download Version artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: version
+          path: .
+
+      - name: Read version from version.txt
+        run: |
+          new_version=$(cat version.txt)
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.new_version }}
+          draft: false
+          prerelease: false
+          files: |
+            built-chrome.zip
+            built-firefox.zip
+
+
+  deploy:
+    needs: deploy-github
     environment:
       name: Deploy
       url: ${{ steps.deploy.outputs.webapp-url }}
@@ -132,8 +170,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            built-chrome.zip
-            built-firefox.zip
+            built-${{ matrix.browser }}.zip
 
       - name: Publish Chrome
         if: matrix.browser == 'chrome'
