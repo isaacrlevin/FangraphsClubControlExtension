@@ -164,15 +164,15 @@ jobs:
           new_version=$(cat version.txt)
           echo "new_version=$new_version" >> $GITHUB_ENV
 
-      - name: Publish Chrome
-        if: matrix.browser == 'chrome'
-        uses: maoserr/chrome_extension_publish@v1.0.3
-        with:
-          chrome_extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
-          client_id: ${{ secrets.CHROME_CLIENT_ID }}
-          refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
-          file: built-chrome.zip
+      # - name: Publish Chrome
+      #   if: matrix.browser == 'chrome'
+      #   uses: maoserr/chrome_extension_publish@v1.0.3
+      #   with:
+      #     chrome_extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
+      #     client_id: ${{ secrets.CHROME_CLIENT_ID }}
+      #     refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      #     client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+      #     file: built-chrome.zip
 
       - name: Publish Firefox
         if: matrix.browser == 'firefox'
