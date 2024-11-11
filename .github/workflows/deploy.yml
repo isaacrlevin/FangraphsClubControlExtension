@@ -135,20 +135,21 @@ jobs:
             built-chrome.zip
             built-firefox.zip
 
-      # - name: Publish Chrome
-      #   if: matrix.browser == 'chrome'
-      #   uses: maoserr/chrome_extension_publish@v1.0.3
-      #   with:
-      #     chrome_extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
-      #     client_id: ${{ secrets.CHROME_CLIENT_ID }}
-      #     refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
-      #     client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
-      #     file: built-chrome.zip
+      - name: Publish Chrome
+        if: matrix.browser == 'chrome'
+        uses: maoserr/chrome_extension_publish@v1.0.3
+        with:
+          chrome_extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
+          client_id: ${{ secrets.CHROME_CLIENT_ID }}
+          refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          file: built-chrome.zip
 
-      # - name: Publish Firefox
-      #   if: matrix.browser == 'firefox'
-      #   uses: maoserr/firefox_extension_publish@v1.0.4
-      #   with:
-        #     api_key: ${{ secrets.FIREFOX_API_KEY }}
-      #     api_secret: ${{ secrets.FIREFOX_API_SECRET }}
-      #     file: built-firefox.zip
+      - name: Publish Firefox
+        if: matrix.browser == 'firefox'
+        uses: maoserr/firefox_extension_publish@v1.0.4
+        with:
+          firefox_extension_id: fangraphsextension@isaaclevin.com
+          api_key: ${{ secrets.FIREFOX_API_KEY }}
+          api_secret: ${{ secrets.FIREFOX_API_SECRET }}
+          file: built-firefox.zip
