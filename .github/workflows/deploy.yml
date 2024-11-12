@@ -69,19 +69,11 @@ jobs:
           cd built-firefox
           zip -r ../built-firefox.zip *
 
-      - name: Upload Chrome zip artifact
-        if: matrix.browser == 'chrome'
+      - name: Upload ${{ matrix.browser }} zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: built-chrome
-          path: src/built-chrome.zip
-
-      - name: Upload Firefox zip artifact
-        if: matrix.browser == 'firefox'
-        uses: actions/upload-artifact@v4
-        with:
-          name: built-firefox
-          path: src/built-firefox.zip
+          name: "built-${{ matrix.browser }}"
+          path: "src/built-${{ matrix.browser }}.zip"
 
       - name: Upload version as artifact
         if: matrix.browser == 'firefox'
@@ -139,18 +131,10 @@ jobs:
         browser: [chrome, firefox]
 
     steps:
-      - name: Download Chrome zip artifact
-        if: matrix.browser == 'chrome'
+      - name: Download ${{ matrix.browser }} zip artifact
         uses: actions/download-artifact@v4
         with:
-          name: built-chrome
-          path: .
-
-      - name: Download Firefox zip artifact
-        if: matrix.browser == 'firefox'
-        uses: actions/download-artifact@v4
-        with:
-          name: built-firefox
+          name: "built-${{ matrix.browser }}"
           path: .
 
       - name: Download Version artifact
