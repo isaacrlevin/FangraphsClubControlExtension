@@ -3,10 +3,6 @@
   "name": "Add Contract Data to Fangraphs Leaders Page",
   "description": "Extension to add player contract data to the Fangraphs leader page",
   "version": "1.0.1",
-  "permissions": [
-    "activeTab",
-    "webNavigation"
-  ],
 
   "icons": {
     "16": "icons/icon16.png",
