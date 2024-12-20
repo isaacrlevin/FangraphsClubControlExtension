@@ -20,22 +20,39 @@ function convertToMillions(value) {
 
 function getFreeAgentYear(playerName) {
   var player = freeAgentData.data.find(function (element) {
-    return element.Name.toLowerCase() == playerName.toLowerCase();
+    return (
+      element.contractSummary.playerName.toLowerCase() ==
+      playerName.toLowerCase()
+    );
   });
 
   if (player) {
-    if (player.SalaryList.length == 1) {
+    //remove items from player.ContractYears that are older than 2024
+    player.contractYears = player.contractYears.filter(function (element) {
+      return element.season >= 2025 && element.type != "FREE AGENT";
+    });
+
+    if (player.contractYears.length == 1) {
       // player is free agent after current year
-      return "SIGNED THRU " + player.SalaryList[0].Year;
+      var val = "SIGNED THRU " + player.contractYears[0].season;
+      if (player.contractYears[0].arbSalaryProjection != null) {
+        val =
+          val +
+          " | " +
+          convertToMillions(
+            player.contractYears[0].arbSalaryProjection.toLocaleString()
+          );
+      }
+      return val;
     }
 
-    if (player.SalaryList.length > 1) {
-      if (player.SalaryList[1].Value == "Pre-ARB") {
+    if (player.contractYears.length > 1) {
+      if (player.contractYears[0].type.includes("PRE-ARB")) {
         // Player is PreArb, calculate when they become arb eligible
         var arb1Year = "";
-        for (var i = 1; i < player.SalaryList.length; i++) {
-          if (player.SalaryList[i].Value == "ARB 1") {
-            arb1Year = player.SalaryList[i].Year;
+        for (var i = 1; i < player.contractYears.length; i++) {
+          if (player.contractYears[i].type == "ARB 1") {
+            arb1Year = player.contractYears[i].season;
             break;
           }
         }
@@ -44,27 +61,29 @@ function getFreeAgentYear(playerName) {
             "PREARB | ARB1 " +
             arb1Year +
             " | FINAL ARB " +
-            player.SalaryList[player.SalaryList.length - 1].Year
+            player.contractYears[player.contractYears.length - 1].season
           );
         }
       }
 
-      if (player.SalaryList[1].Value.includes("ARB")) {
+      if (player.contractYears[0].type.includes("ARB")) {
         //Player Currently in ARB Year
-        var arbNum = player.SalaryList[1].Value.replace("ARB ", "");
+        var arbNum = player.contractYears[0].type.replace("ARB ", "");
+        if (arbNum.includes("TBD")) {
+          var tempArb = player.contractYears[1].type.replace("ARB ", "");
+          arbNum = tempArb - 1;
+        }
         return (
-          player.SalaryList[1].Value.replace("-", "") +
+          "ARB" +
+          arbNum +
           " | FINAL ARB " +
-          player.SalaryList[player.SalaryList.length - 1].Year
+          player.contractYears[player.contractYears.length - 1].season
         );
       }
-      //sum all the salary for the years in player.SalaryList
+      //sum all the salary for the years in player.contractYears
       var totalSalary = 0;
-      for (var i = 1; i < player.SalaryList.length; i++) {
-        var tempSal = player.SalaryList[i].Value.replace("$", "").replace(
-          /,/g,
-          ""
-        );
+      for (var i = 1; i < player.contractYears.length; i++) {
+        var tempSal = player.contractYears[i].salary;
         var sal = parseInt(tempSal);
         if (sal === sal) {
           totalSalary += sal;
@@ -72,7 +91,7 @@ function getFreeAgentYear(playerName) {
       }
       return (
         "SIGNED THRU " +
-        player.SalaryList[player.SalaryList.length - 1].Year +
+        player.contractSummary.endSeason +
         " | " +
         convertToMillions(totalSalary.toLocaleString())
       );
@@ -122,6 +141,13 @@ function removeFreeAgentYearColumn() {
 // Function to add the "Free Agent Year" column
 function addFreeAgentYearColumn() {
   removeFreeAgentYearColumn();
+
+  if (
+    window.location.href.includes("team=,") ||
+    window.location.href.includes("team=0%2")
+  ) {
+    return;
+  }
 
   console.log(
     "Add Contract Data to Fangraphs Leaders Page Extension: Adding Free Agent Year Column"
@@ -174,6 +200,7 @@ function addFreeAgentYearColumn() {
       if (freeAgentYear.includes("ARB") && highlightArbitration) {
         row.style.backgroundColor = "yellow";
       }
+
       attachEventListeners();
     }
   });
@@ -203,6 +230,9 @@ function createHoverTable() {
         <td data-contract-color="player">Player Option</td>
         <td data-contract-color="mutual">Mutual Option</td>
         <td data-contract-color="vesting">Vesting Option</td>
+      </tr>
+      <tr class="payroll-legend">
+        <td colspan="3" data-contract-color="arb" style="background-color: #cfc">Estimated ARB (MLBTR)</td>
       </tr>
 </tbody>
   `;
@@ -257,54 +287,119 @@ function showHoverTable(event) {
     const playerName = playerNameCell.innerText.trim();
 
     var playerData = freeAgentData.data.find(function (element) {
-      return element.Name.toLowerCase() == playerName.toLowerCase();
+      return (
+        element.contractSummary.playerName.toLowerCase() ==
+        playerName.toLowerCase()
+      );
     });
 
     var table = document.getElementById("hover-table");
 
     if (playerData) {
-      table.innerHTML = `
-      <thead>
-        <tr>
-          <th style='width: 40%'>Contract Year</th>
-          <th style='width: 60%'>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${playerData.SalaryList.map(
-          (contract) => `
-          <tr>
-            <td style='width: 40%'>${contract.Year}</td>
-            <td style='width: 60%' data-stat="${
-              contract.Year
-            }" class="cell-painted   " data-contract-color="${
-            contract.Attribute
-          }">
-            ${
-              contract.Value.includes("ARB")
-                ? contract.Value
-                : convertToMillions(contract.Value)
+      // Clear existing content
+      table.innerHTML = "";
+
+      // Create thead
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      const thYear = document.createElement("th");
+      thYear.style.width = "40%";
+      thYear.textContent = "Contract Year";
+      const thStatus = document.createElement("th");
+      thStatus.style.width = "60%";
+      thStatus.textContent = "Status";
+      headerRow.appendChild(thYear);
+      headerRow.appendChild(thStatus);
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Create tbody
+      const tbody = document.createElement("tbody");
+
+      playerData.contractYears.forEach((contract, index) => {
+        if (contract.season >= 2025) {
+          const row = document.createElement("tr");
+
+          const tdYear = document.createElement("td");
+          tdYear.style.width = "40%";
+          tdYear.textContent = contract.season;
+          row.appendChild(tdYear);
+
+          const tdStatus = document.createElement("td");
+          tdStatus.style.width = "60%";
+          tdStatus.setAttribute("data-stat", contract.season);
+          tdStatus.classList.add("cell-painted");
+
+          if (contract.arbSalaryProjection != null) {
+            tdStatus.classList.add("is-estimate-arb");
+            tdStatus.setAttribute("data-contract-color", "arb");
+          } else {
+            tdStatus.setAttribute("data-contract-color", contract.type);
+          }
+
+          if (contract.type.includes("ARB")) {
+            var arb = contract.type.replace(" (TBD)", "").replace(" (PLACEHOLDER)","");
+
+            if (arb.toLowerCase() == "pre-arb") {
+              tdStatus.textContent = "PRE-ARB";
+            } else if (arb != "PRE-ARB" && arb.includes("ARB")) {
+              var arbNum = arb.trim().replace("ARB ", "").replace("ARB", "");
+              if (arbNum.trim() != "") {
+              } else {
+                if (
+                  arbNum.trim() == "" &&
+                  playerData.contractYears.length > 1
+                ) {
+                  var tempArb = playerData.contractYears[
+                    index + 1
+                  ].type.replace("ARB ", "");
+
+                  if (
+                    tempArb.trim() == "" &&
+                    playerData.contractYears.length > 2
+                  ) {
+                    tempArb = playerData.contractYears[index + 2].type.replace(
+                      "ARB ",
+                      ""
+                    );
+                    arbNum = tempArb - 2;
+                  } else {
+                    arbNum = tempArb - 1;
+                  }
+                } else {
+                  arbNum = "";
+                }
+              }
+              if (contract.arbSalaryProjection != null) {
+                tdStatus.textContent =
+                  "ARB " +
+                  arbNum +
+                  " - " +
+                  convertToMillions(
+                    contract.arbSalaryProjection.toLocaleString()
+                  );
+              } else {
+                tdStatus.textContent = "ARB " + arbNum;
+              }
             }
-            </td>
-          </tr>
-        `
-        ).join("")}
-      </tbody>
-    `;
-    } else {
-      table.innerHTML = `
-      <thead>
-        <tr>
-          <th>No Data Available</th>
-        </tr>
-      </thead>
-    `;
+          } else {
+            tdStatus.textContent = convertToMillions(
+              contract.salary.toLocaleString()
+            );
+          }
+          row.appendChild(tdStatus);
+
+          tbody.appendChild(row);
+        }
+      });
+
+      table.appendChild(tbody);
+
+      hoverTable.style.left = `${event.pageX + 10}px`;
+      hoverTable.style.top = `${event.pageY + 10}px`;
+      hoverTable.style.display = "block";
     }
   }
-
-  hoverTable.style.left = `${event.pageX + 10}px`;
-  hoverTable.style.top = `${event.pageY + 10}px`;
-  hoverTable.style.display = "block";
 }
 
 // Function to hide the hover table
@@ -370,14 +465,6 @@ const initialObserver = new MutationObserver((mutations) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "updateDOM") {
-    const queryString = message.queryString;
-    qsUpdated = true;
-    removeFreeAgentYearColumn();
-  }
-});
-
 chrome.storage.sync.get("highlightArbitration", (data) => {
   if (data.highlightArbitration) {
     console.log("Highlighting arbitration players");
@@ -387,7 +474,8 @@ chrome.storage.sync.get("highlightArbitration", (data) => {
 
 function getPayrollData() {
   const localStorageKey = "fangraphsFreeAgentData";
-  const apiEndpoint = "https://fangraphs.azurewebsites.net/api/GetPayrolls?"; // Replace with your API endpoint
+  const apiEndpoint =
+    "https://fangraphs.azurewebsites.net/api/GetPayrollsTest?"; // Replace with your API endpoint
   const oneDay = 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
   // Retrieve data from localStorage

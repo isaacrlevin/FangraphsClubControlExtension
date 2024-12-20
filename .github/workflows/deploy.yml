@@ -1,0 +1,179 @@
+name: Deploy Extension
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - '.github/workflows/deploy.yml'
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      - name: Get the latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` || echo "1.0.0")
+          echo "tag=$latest_tag" >> $GITHUB_ENV
+
+      - name: Increment version number
+        id: increment_version
+        run: |
+          if [[ "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            new_version="${{ github.event.inputs.version }}"
+          else
+            tag=${{ env.tag }}
+            IFS='.' read -r -a version_parts <<< "$tag"
+            version_parts[2]=$((version_parts[2] + 1))
+            new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
+          fi
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: Run build script
+        working-directory: src
+        run: |
+          chmod +x build.sh
+          ./build.sh ${{ matrix.browser }}
+
+      - name: Update version in manifest.json
+        working-directory: src
+        run: |
+          new_version=${{ env.new_version }}
+          if [ "${{ matrix.browser }}" == "chrome" ]; then
+            jq --arg version "$new_version" '.version = $version' built-chrome/manifest.json > tmp.$$.json && mv tmp.$$.json built-chrome/manifest.json
+          elif [ "${{ matrix.browser }}" == "firefox" ]; then
+            jq --arg version "$new_version" '.version = $version' built-firefox/manifest.json > tmp.$$.json && mv tmp.$$.json built-firefox/manifest.json
+          fi
+
+      - name: Create version.txt
+        working-directory: src
+        run: |
+          echo "${{ env.new_version }}" > version.txt
+
+      - name: Zip Chrome extension
+        if: matrix.browser == 'chrome'
+        working-directory: src
+        run: zip -r built-chrome.zip built-chrome
+
+      - name: Zip Firefox extension
+        working-directory: src
+        if: matrix.browser == 'firefox'
+        run: |
+          cd built-firefox
+          zip -r ../built-firefox.zip *
+
+      - name: Upload ${{ matrix.browser }} zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "built-${{ matrix.browser }}"
+          path: "src/built-${{ matrix.browser }}.zip"
+
+      - name: Upload version as artifact
+        if: matrix.browser == 'firefox'
+        uses: actions/upload-artifact@v4
+        with:
+          name: version
+          path: src/version.txt
+
+  deploy-github:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Chrome zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built-chrome
+          path: .
+
+      - name: Download Firefox zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built-firefox
+          path: .
+
+      - name: Download Version artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: version
+          path: .
+
+      - name: Read version from version.txt
+        run: |
+          new_version=$(cat version.txt)
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.new_version }}
+          draft: false
+          prerelease: false
+          files: |
+            built-chrome.zip
+            built-firefox.zip
+
+
+  deploy:
+    needs: deploy-github
+    environment:
+      name: Deploy
+      url: ${{ steps.deploy.outputs.webapp-url }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+
+    steps:
+      - name: Download ${{ matrix.browser }} zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: "built-${{ matrix.browser }}"
+          path: .
+
+      - name: Download Version artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: version
+          path: .
+
+      - name: Read version from version.txt
+        run: |
+          new_version=$(cat version.txt)
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: Publish Chrome
+        if: matrix.browser == 'chrome'
+        uses: maoserr/chrome_extension_publish@v1.0.3
+        with:
+          chrome_extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
+          client_id: ${{ secrets.CHROME_CLIENT_ID }}
+          refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          file: built-chrome.zip
+
+      - name: Publish Firefox
+        if: matrix.browser == 'firefox'
+        uses: maoserr/firefox_extension_publish@v1.0.4
+        with:
+          firefox_extension_id: fangraphsextension@isaaclevin.com
+          api_key: ${{ secrets.FIREFOX_API_KEY }}
+          api_secret: ${{ secrets.FIREFOX_API_SECRET }}
+          file: built-firefox.zip
