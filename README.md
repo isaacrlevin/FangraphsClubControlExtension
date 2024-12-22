@@ -34,5 +34,6 @@ If you hover over the column in a particular player row, a window will appear sh
 - Click "Load unpacked",
 - Select the `src` folder you built above.
 
+
 ## Buy me a Coffee
 If you like this extension, feel free to [buy me a coffee!](https://buymeacoffee.com/isaacrlevin)
