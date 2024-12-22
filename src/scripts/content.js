@@ -1,3 +1,6 @@
+if (typeof browser === "undefined") {
+  var browser = chrome;
+}
 let freeAgentData = {};
 let qsUpdated = false;
 let highlightArb = false;
