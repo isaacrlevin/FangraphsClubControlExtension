@@ -1,6 +1,11 @@
 let freeAgentData = {};
 let qsUpdated = false;
-let highlightArbitration = false;
+let highlightArb = false;
+let arbColor = "#ff0000";
+let highlightPreArb = false;
+let preArbColor = "#ff0000";
+let highlightLessThanOneYear = false;
+let lessThanOneYearColor = "#ff0000";
 function convertToMillions(value) {
   // Remove non-numeric characters except for the decimal point and comma
   let cleanedValue = value.replace(/[^0-9.]/g, "");
@@ -197,8 +202,14 @@ function addFreeAgentYearColumn() {
       newCell.innerText = freeAgentYear;
       row.appendChild(newCell);
 
-      if (freeAgentYear.includes("ARB") && highlightArbitration) {
-        row.style.backgroundColor = "yellow";
+      updateHighlightColor(row, "#ffffff");
+
+      if (freeAgentYear.includes("PREARB") && highlightPreArb) {
+        updateHighlightColor(row, preArbColor);
+      } else if (freeAgentYear.includes("ARB") && highlightArb) {
+        updateHighlightColor(row, arbColor);
+      } else if (freeAgentYear.includes("2025") && highlightLessThanOneYear) {
+        updateHighlightColor(row, lessThanOneYearColor);
       }
 
       attachEventListeners();
@@ -338,7 +349,9 @@ function showHoverTable(event) {
           }
 
           if (contract.type.includes("ARB")) {
-            var arb = contract.type.replace(" (TBD)", "").replace(" (PLACEHOLDER)","");
+            var arb = contract.type
+              .replace(" (TBD)", "")
+              .replace(" (PLACEHOLDER)", "");
 
             if (arb.toLowerCase() == "pre-arb") {
               tdStatus.textContent = "PRE-ARB";
@@ -465,12 +478,111 @@ const initialObserver = new MutationObserver((mutations) => {
   }
 });
 
-chrome.storage.sync.get("highlightArbitration", (data) => {
-  if (data.highlightArbitration) {
-    console.log("Highlighting arbitration players");
-    highlightArbitration = data.highlightArbitration;
+// Function to calculate luminance
+function getLuminance(hex) {
+  const rgb = parseInt(hex.slice(1), 16); // Convert hex to RGB
+  const r = (rgb >> 16) & 0xff;
+  const g = (rgb >> 8) & 0xff;
+  const b = (rgb >> 0) & 0xff;
+
+  // Calculate luminance
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance;
+}
+
+// Function to update the UI with the highlight color
+function updateHighlightColor(element, color) {
+  element.style.setProperty("background-color", color, "important");
+  const textColor = getLuminance(color) < 128 ? "white" : "black";
+  element.style.setProperty("color", textColor, "important");
+
+  // Update the color of any anchor tags within the element
+  const anchorTags = element.getElementsByTagName("a");
+  for (let anchor of anchorTags) {
+    anchor.style.setProperty("color", textColor, "important");
+  }
+}
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === "sync") {
+    if (changes.highlightArb) {
+      highlightArb = changes.highlightArb.newValue;
+    }
+    if (changes.arbColor) {
+      arbColor = changes.arbColor.newValue;
+    }
+    if (changes.highlightPreArb) {
+      highlightPreArb = changes.highlightPreArb.newValue;
+    }
+    if (changes.preArbColor) {
+      preArbColor = changes.preArbColor.newValue;
+    }
+    if (changes.highlightLessThanOneYear) {
+      highlightLessThanOneYear = changes.highlightLessThanOneYear.newValue;
+    }
+    if (changes.lessThanOneYearColor) {
+      lessThanOneYearColor = changes.lessThanOneYearColor.newValue;
+    }
+    // Call a function to update the UI with the new settings
+    updateUI();
   }
 });
+
+function updateUI() {
+  console.log("Updating UI with new settings...");
+  addFreeAgentYearColumn();
+}
+
+chrome.storage.sync.get(
+  [
+    "highlightArb",
+    "arbColor",
+    "highlightPreArb",
+    "preArbColor",
+    "highlightLessThanOneYear",
+    "lessThanOneYearColor",
+  ],
+  (data) => {
+    if (data.highlightArb) {
+      console.log(
+        "Highlighting arbitration players with color:",
+        data.arbColor
+      );
+      highlightArb = data.highlightArb;
+      arbColor = data.arbColor;
+    } else {
+      console.log("Removing Highlighting arbitration players");
+      highlightArb = false;
+      arbColor = "#ff0000"; // Default color
+    }
+
+    if (data.highlightPreArb) {
+      console.log(
+        "Highlighting prearbitration players with color:",
+        data.preArbColor
+      );
+      highlightPreArb = data.highlightPreArb;
+      preArbColor = data.preArbColor;
+    } else {
+      console.log("Removing Highlighting arbitration players");
+      highlightPreArb = false;
+      preArbColor = "#ff0000"; // Default color
+    }
+
+    if (data.highlightLessThanOneYear) {
+      console.log(
+        "Highlighting one year remaining players with color:",
+        data.lessThanOneYearColor
+      );
+      highlightLessThanOneYear = data.highlightLessThanOneYear;
+      lessThanOneYearColor = data.lessThanOneYearColor;
+    } else {
+      console.log("Removing Highlighting one year remaining players");
+      highlightLessThanOneYear = false;
+      lessThanOneYearColor = "#ff0000"; // Default color
+    }
+    updateUI();
+  });
 
 function getPayrollData() {
   const localStorageKey = "fangraphsFreeAgentData";
@@ -534,3 +646,4 @@ function getPayrollData() {
 }
 
 getPayrollData();
+getStorage();

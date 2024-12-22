@@ -2,12 +2,78 @@
 <html>
   <head>
     <title>Add Contract Data to Fangraphs Leaders Page Options</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f4f4f9;
+      }
+      h1 {
+        color: #333;
+      }
+      .option {
+        margin-bottom: 15px;
+      }
+      .option label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      .option input[type="checkbox"] {
+        margin-right: 10px;
+      }
+      .option input[type="color"] {
+        margin-left: 10px;
+      }
+      #status {
+        margin-top: 10px;
+        color: green;
+      }
+      button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+    </style>
   </head>
   <body>
-    <label>
-      <input type="checkbox" id="highlightArbitration" />
-      Highlight arbitration players.
-    </label>
+    <h1>Fangraphs Contract Extension Options</h1>
+    <div class="option">
+      <label>
+        <input type="checkbox" id="highlightArb" />
+        Highlight Arbitration players.
+      </label>
+      <label>
+        Highlight color:
+        <input type="color" id="arbColor" value="#ff0000" />
+      </label>
+    </div>
+    <div class="option">
+      <label>
+        <input type="checkbox" id="highlightPreArb" />
+        Highlight Pre-Arbitration players.
+      </label>
+      <label>
+        Highlight color:
+        <input type="color" id="preArbColor" value="#00ff00" />
+      </label>
+    </div>
+    <div class="option">
+      <label>
+        <input type="checkbox" id="highlightLessThanOneYear" />
+        Highlight players with less than one year left on contract.
+      </label>
+      <label>
+        Highlight color:
+        <input type="color" id="lessThanOneYearColor" value="#0000ff" />
+      </label>
+    </div>
     <div id="status"></div>
     <button id="save">Save</button>
     <script src="options.js"></script>
