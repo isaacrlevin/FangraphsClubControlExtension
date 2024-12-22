@@ -142,11 +142,6 @@ jobs:
         browser: [chrome, firefox]
 
     steps:
-      - name: Get Commit Info
-        run: |
-          commit="${{ github.event.commits[0].message }}"
-          function=$(awk 'BEGIN{FS=OFS="|"} {print $1}' <<< ${commit})
-          echo "FUNCTION=$function" >> $GITHUB_ENV
       - name: Download ${{ matrix.browser }} zip artifact
         uses: actions/download-artifact@v4
         with:
@@ -165,7 +160,7 @@ jobs:
           echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: Publish Chrome
-        if: matrix.browser == 'chrome' && env.FUNCTION == 'PUBLISH' && always()
+        if: matrix.browser == 'chrome'
         uses: maoserr/chrome_extension_publish@v1.0.3
         with:
           chrome_extension_id: ${{ secrets.CHROME_EXTENSION_ID }}
@@ -175,7 +170,7 @@ jobs:
           file: built-chrome.zip
 
       - name: Publish Firefox
-        if: matrix.browser == 'firefox' && env.FUNCTION == 'PUBLISH' && always()
+        if: matrix.browser == 'firefox'
         uses: maoserr/firefox_extension_publish@v1.0.4
         with:
           firefox_extension_id: fangraphsextension@isaaclevin.com
