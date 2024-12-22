@@ -2,7 +2,8 @@
   "name": "Add Contract Data to Fangraphs Leaders Page",
   "permissions": [
     "activeTab",
-    "webNavigation"
+    "webNavigation",
+    "storage"
   ],
   "author": "Isaac Levin<isaac@isaaclevin.com>",
   "description": "Extension to add player contract data to the Fangraphs leader page",
@@ -12,9 +13,9 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "options_ui": {
-    "page": "../options/options.html",
-    "open_in_tab": false
+  "options_page": "options/options.html",
+  "action": {
+    "default_popup": "options/options.html"
   },
   "manifest_version": 3,
   "host_permissions": [
