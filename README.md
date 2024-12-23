@@ -43,5 +43,6 @@ There is also an options page when you click on the extension icon in the browse
 - Click "Load unpacked",
 - Select the `src` folder you built above.
 
+
 ## Buy me a Coffee
 If you like this extension, feel free to [buy me a coffee!](https://buymeacoffee.com/isaacrlevin)
