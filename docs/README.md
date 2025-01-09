@@ -10,7 +10,7 @@ Simple Chromium-based browser extension that adds a additional data to the leade
 
 ## Demo
 
-![alt text](..//images/demo.gif)
+![alt text](https://raw.githubusercontent.com/isaacrlevin/FangraphsClubControlExtension/refs/heads/main/images/demo.gif)
 
 Here is what the column means depending on status of player:
 
@@ -19,7 +19,7 @@ Here is what the column means depending on status of player:
 
 If you hover over the column in a particular player row, a window will appear showing the current contract breakdown of that player, including any options they may have as part of that contract.
 
-![alt text](..//images/contract-breakdown.png)
+![alt text](https://raw.githubusercontent.com/isaacrlevin/FangraphsClubControlExtension/refs/heads/main/images/contract-breakdown.png)
 
 There is also an options page when you click on the extension icon in the browser. Here you can change the default settings of the extension, allowing you to highlight a player's row based on a few different criteria. You can also change the color of the highlight. Here are the different criteria you can highlight
 
@@ -27,7 +27,7 @@ There is also an options page when you click on the extension icon in the browse
 - Pre-Arbitration Players
 - Players with less than one year left on their contract
 
-![alt text](../images/options.png)
+![alt text](https://raw.githubusercontent.com/isaacrlevin/FangraphsClubControlExtension/refs/heads/main/images/options.png)
 
 
 ### Development
