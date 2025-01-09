@@ -3,7 +3,8 @@
   "permissions": [
     "activeTab",
     "webNavigation",
-    "storage"
+    "storage",
+    "scripting"
   ],
   "author": "Isaac Levin<isaac@isaaclevin.com>",
   "description": "Extension to add player contract data to the Fangraphs leader page",
@@ -22,9 +23,20 @@
     "https://fangraphs.azurewebsites.net/api/GetPayrolls",
     "https://www.fangraphs.com/leaders/major-league*"
   ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "scripts/override-fetch.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "js": [
+        "scripts/contract-data.js",
+        "scripts/helpers.js",
+        "scripts/contract-table.js",
         "scripts/content.js"
       ],
       "css": [

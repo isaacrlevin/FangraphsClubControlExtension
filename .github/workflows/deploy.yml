@@ -169,6 +169,15 @@ jobs:
           client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
           file: built-chrome.zip
 
+      - name: Publish Edge
+        if: matrix.browser == 'chrome'
+        uses: wdzeng/edge-addon@v2
+        with:
+          product-id: ${{ secrets.EDGE_PRODUCT_ID }}
+          zip-path: built-chrome.zip
+          api-key: ${{ secrets.EDGE_API_KEY }}
+          client-id: ${{ secrets.EDGE_CLIENT_ID }}
+
       - name: Publish Firefox
         if: matrix.browser == 'firefox'
         uses: maoserr/firefox_extension_publish@v1.0.4

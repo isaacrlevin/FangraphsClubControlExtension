@@ -1,7 +1,8 @@
 if (typeof browser === "undefined") {
   var browser = chrome;
 }
-let freeAgentData = {};
+
+let leadersMajorLeagueData = {};
 let qsUpdated = false;
 let highlightArb = false;
 let arbColor = "#ff0000";
@@ -9,22 +10,93 @@ let highlightPreArb = false;
 let preArbColor = "#ff0000";
 let highlightLessThanOneYear = false;
 let lessThanOneYearColor = "#ff0000";
-function convertToMillions(value) {
-  // Remove non-numeric characters except for the decimal point and comma
-  let cleanedValue = value.replace(/[^0-9.]/g, "");
+let currentUrl = "";
 
-  // Convert the cleaned string to a number
-  let numberValue = parseFloat(cleanedValue);
+let freeAgentData = globalThis.payrollData();
 
-  // Divide by 1,000,000 to get the value in millions
-  let millionValue = numberValue / 1000000;
+window.addEventListener("storage", (event) => {
+  if (event.storageArea === localStorage) {
+    // This means localStorage was modified
+    getPageData();
+  }
+});
 
-  // Round to the nearest 10,000
-  millionValue = Math.round(millionValue * 100) / 100;
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === "sync") {
+    if (changes.highlightArb) {
+      highlightArb = changes.highlightArb.newValue;
+    }
+    if (changes.arbColor) {
+      arbColor = changes.arbColor.newValue;
+    }
+    if (changes.highlightPreArb) {
+      highlightPreArb = changes.highlightPreArb.newValue;
+    }
+    if (changes.preArbColor) {
+      preArbColor = changes.preArbColor.newValue;
+    }
+    if (changes.highlightLessThanOneYear) {
+      highlightLessThanOneYear = changes.highlightLessThanOneYear.newValue;
+    }
+    if (changes.lessThanOneYearColor) {
+      lessThanOneYearColor = changes.lessThanOneYearColor.newValue;
+    }
+    // Call a function to update the UI with the new settings
+    updateUI();
+  }
+});
 
-  // Format the result to include the "M" suffix
-  return `$${millionValue}M`;
-}
+chrome.storage.sync.get(
+  [
+    "highlightArb",
+    "arbColor",
+    "highlightPreArb",
+    "preArbColor",
+    "highlightLessThanOneYear",
+    "lessThanOneYearColor",
+  ],
+  (data) => {
+    if (data.highlightArb) {
+      console.log(
+        "Highlighting arbitration players with color:",
+        data.arbColor
+      );
+      highlightArb = data.highlightArb;
+      arbColor = data.arbColor;
+    } else {
+      console.log("Removing Highlighting arbitration players");
+      highlightArb = false;
+      arbColor = "#ff0000"; // Default color
+    }
+
+    if (data.highlightPreArb) {
+      console.log(
+        "Highlighting prearbitration players with color:",
+        data.preArbColor
+      );
+      highlightPreArb = data.highlightPreArb;
+      preArbColor = data.preArbColor;
+    } else {
+      console.log("Removing Highlighting arbitration players");
+      highlightPreArb = false;
+      preArbColor = "#ff0000"; // Default color
+    }
+
+    if (data.highlightLessThanOneYear) {
+      console.log(
+        "Highlighting one year remaining players with color:",
+        data.lessThanOneYearColor
+      );
+      highlightLessThanOneYear = data.highlightLessThanOneYear;
+      lessThanOneYearColor = data.lessThanOneYearColor;
+    } else {
+      console.log("Removing Highlighting one year remaining players");
+      highlightLessThanOneYear = false;
+      lessThanOneYearColor = "#ff0000"; // Default color
+    }
+    updateUI();
+  }
+);
 
 function getFreeAgentYear(playerName) {
   var player = freeAgentData.data.find(function (element) {
@@ -47,7 +119,7 @@ function getFreeAgentYear(playerName) {
         val =
           val +
           " | " +
-          convertToMillions(
+          globalThis.convertToMillions(
             player.contractYears[0].arbSalaryProjection.toLocaleString()
           );
       }
@@ -101,14 +173,14 @@ function getFreeAgentYear(playerName) {
         "SIGNED THRU " +
         player.contractSummary.endSeason +
         " | " +
-        convertToMillions(totalSalary.toLocaleString())
+        globalThis.convertToMillions(totalSalary.toLocaleString())
       );
     }
   }
   return "NOT ON ANY ACTIVE PAYROLLS";
 }
 
-function removeFreeAgentYearColumn() {
+function removeFreeAgentYearColumn(dataColId) {
   const table = document.querySelector(".table-scroll");
   if (!table) return;
 
@@ -117,13 +189,13 @@ function removeFreeAgentYearColumn() {
   var columnIndexToDelete = -1;
   if (headerRow) {
     for (var i = 0; i < headerRow.cells.length; i++) {
+      var rowCell = headerRow.cells[i];
       if (
-        headerRow.cells[i].attributes["data-col-id"] !== undefined &&
-        headerRow.cells[i].attributes["data-col-id"].value.toLowerCase() ===
-          "clubcontrol"
+        rowCell.attributes["data-col-id"] !== undefined &&
+        rowCell.attributes["data-col-id"].value.toLowerCase() === dataColId
       ) {
         //headerRow.cells[i-1].remove();
-        headerRow.cells[i].remove();
+        rowCell.remove();
         break;
       }
     }
@@ -134,12 +206,12 @@ function removeFreeAgentYearColumn() {
     const playerNameCell = row.querySelector("td a");
     if (playerNameCell) {
       for (var i = 0; i < row.cells.length; i++) {
+        var rowCell = row.cells[i];
         if (
-          row.cells[i].attributes["data-col-id"] !== undefined &&
-          row.cells[i].attributes["data-col-id"].value.toLowerCase() ===
-            "clubcontrol"
+          rowCell.attributes["data-col-id"] !== undefined &&
+          rowCell.attributes["data-col-id"].value.toLowerCase() === dataColId
         ) {
-          row.cells[i].remove();
+          rowCell.remove();
         }
       }
     }
@@ -148,7 +220,8 @@ function removeFreeAgentYearColumn() {
 
 // Function to add the "Free Agent Year" column
 function addFreeAgentYearColumn() {
-  removeFreeAgentYearColumn();
+  removeFreeAgentYearColumn("baseballsavantlink");
+  removeFreeAgentYearColumn("clubcontrol");
 
   if (
     window.location.href.includes("team=,") ||
@@ -157,9 +230,7 @@ function addFreeAgentYearColumn() {
     return;
   }
 
-  console.log(
-    "Add Contract Data to Fangraphs Leaders Page Extension: Adding Free Agent Year Column"
-  );
+  console.log("Adding Free Agent Year Column");
   const table = document.querySelector(".table-scroll");
   if (!table) return;
 
@@ -167,6 +238,19 @@ function addFreeAgentYearColumn() {
   const headerRow = table.querySelector("thead tr");
   const lastHeader = headerRow.cells[headerRow.cells.length - 1];
   const dataCol = lastHeader.attributes["data-col"].value;
+
+  if (
+    window.location.href.includes("type=24") &&
+    leadersMajorLeagueData.length != undefined
+  ) {
+    const savantLinkTH = document.createElement("th");
+    savantLinkTH.setAttribute("data-col-id", "BaseballSavantLink");
+    savantLinkTH.setAttribute("data-stat", "BaseballSavantLink");
+    savantLinkTH.classList.add("align-left");
+    savantLinkTH.innerText = "Baseball Savant";
+    //headerRow.insertBefore(savantLinkTH, headerRow.cells[headerRow.cells.length]);
+    headerRow.appendChild(savantLinkTH);
+  }
 
   const dividerTH = document.createElement("th");
   dividerTH.setAttribute("data-col", parseInt(dataCol) + 1);
@@ -192,6 +276,37 @@ function addFreeAgentYearColumn() {
       const playerName = playerNameCell.innerText.trim();
       const freeAgentYear = getFreeAgentYear(playerName);
 
+      if (
+        window.location.href.includes("type=24") &&
+        leadersMajorLeagueData.length != undefined
+      ) {
+        var playerData = leadersMajorLeagueData.find(function (element) {
+          return element.PlayerName.toLowerCase() == playerName.toLowerCase();
+        });
+
+        if (playerData !== undefined) {
+          const savantLink = document.createElement("td");
+          savantLink.setAttribute("data-col-id", "BaseballSavantLink");
+          savantLink.setAttribute("data-stat", "BaseballSavantLink");
+          savantLink.classList.add("align-left");
+
+          var savantUrl = `https://baseballsavant.mlb.com/savant-player/${playerData.PlayerName.toLowerCase().replace(
+            " ",
+            "-"
+          )}-${playerData.xMLBAMID}`;
+          var aTag = document.createElement("a");
+          aTag.setAttribute("href", savantUrl);
+          aTag.innerText = "Link";
+          aTag.setAttribute("style", "color:blue !important");
+          aTag.setAttribute("target", "_blank");
+          savantLink.appendChild(aTag);
+          //row.insertBefore(savantLink, row.cells[3]);
+          row.appendChild(savantLink);
+        } else {
+          var foo = "";
+        }
+      }
+
       const divider = document.createElement("td");
       divider.setAttribute("data-col-id", "divider");
       divider.setAttribute("data-stat", "-- Line Break --");
@@ -205,258 +320,56 @@ function addFreeAgentYearColumn() {
       newCell.innerText = freeAgentYear;
       row.appendChild(newCell);
 
-      updateHighlightColor(row, "#ffffff");
+      globalThis.updateHighlightColor(row, "#ffffff");
 
       if (freeAgentYear.includes("PREARB") && highlightPreArb) {
-        updateHighlightColor(row, preArbColor);
+        globalThis.updateHighlightColor(row, preArbColor);
       } else if (freeAgentYear.includes("ARB") && highlightArb) {
-        updateHighlightColor(row, arbColor);
+        globalThis.updateHighlightColor(row, arbColor);
       } else if (freeAgentYear.includes("2025") && highlightLessThanOneYear) {
-        updateHighlightColor(row, lessThanOneYearColor);
+        globalThis.updateHighlightColor(row, lessThanOneYearColor);
       }
 
-      attachEventListeners();
+      globalThis.attachEventListeners();
     }
   });
 }
 
 body = document.body;
 
-function createHoverTable() {
-  const root = document.createElement("div");
-  root.id = "root-roster-resource";
-
-  const div = document.createElement("div");
-  div.classList.add("roster-resource-payroll");
-
-  const legend = document.createElement("div");
-  legend.classList.add("contracts-header__page-legend");
-
-  const legendTable = document.createElement("table");
-  legendTable.innerHTML = `
-    <tbody>
-      <tr class="payroll-legend">
-        <td data-contract-color="true">Legend:</td>
-        <td data-contract-color="FREE AGENT">ARB</td>
-        <td data-contract-color="team">Club Option</td>
-      </tr>
-      <tr class="payroll-legend">
-        <td data-contract-color="player">Player Option</td>
-        <td data-contract-color="mutual">Mutual Option</td>
-        <td data-contract-color="vesting">Vesting Option</td>
-      </tr>
-      <tr class="payroll-legend">
-        <td colspan="3" data-contract-color="arb" style="background-color: #cfc">Estimated ARB (MLBTR)</td>
-      </tr>
-</tbody>
-  `;
-
-  legendTable.style.width = "100%";
-  legend.style.backgroundColor = "white";
-  legend.appendChild(legendTable);
-
-  const table = document.createElement("table");
-  table.id = "hover-table";
-  table.classList.add("hover-table");
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Header 1</th>
-        <th>Header 2</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Data 1</td>
-        <td>Data 2</td>
-      </tr>
-      <tr>
-        <td>Data 3</td>
-        <td>Data 4</td>
-      </tr>
-    </tbody>
-  `;
-  root.style.position = "absolute";
-  root.style.display = "none";
-  root.style.border = "1px solid black";
-  table.style.border = "1px solid black";
-  table.style.backgroundColor = "white";
-
-  div.appendChild(legend);
-  div.appendChild(table);
-  root.appendChild(div);
-  document.body.appendChild(root);
-  return root;
-}
-
-const hoverTable = createHoverTable();
-
-// Function to show the hover table
-function showHoverTable(event) {
-  const cell = event.currentTarget;
-  const row = cell.parentElement;
-
-  const playerNameCell = row.querySelector("td a");
-  if (playerNameCell) {
-    const playerName = playerNameCell.innerText.trim();
-
-    var playerData = freeAgentData.data.find(function (element) {
-      return (
-        element.contractSummary.playerName.toLowerCase() ==
-        playerName.toLowerCase()
-      );
-    });
-
-    var table = document.getElementById("hover-table");
-
-    if (playerData) {
-      // Clear existing content
-      table.innerHTML = "";
-
-      // Create thead
-      const thead = document.createElement("thead");
-      const headerRow = document.createElement("tr");
-      const thYear = document.createElement("th");
-      thYear.style.width = "40%";
-      thYear.textContent = "Contract Year";
-      const thStatus = document.createElement("th");
-      thStatus.style.width = "60%";
-      thStatus.textContent = "Status";
-      headerRow.appendChild(thYear);
-      headerRow.appendChild(thStatus);
-      thead.appendChild(headerRow);
-      table.appendChild(thead);
-
-      // Create tbody
-      const tbody = document.createElement("tbody");
-
-      playerData.contractYears.forEach((contract, index) => {
-        if (contract.season >= 2025) {
-          const row = document.createElement("tr");
-
-          const tdYear = document.createElement("td");
-          tdYear.style.width = "40%";
-          tdYear.textContent = contract.season;
-          row.appendChild(tdYear);
-
-          const tdStatus = document.createElement("td");
-          tdStatus.style.width = "60%";
-          tdStatus.setAttribute("data-stat", contract.season);
-          tdStatus.classList.add("cell-painted");
-
-          if (contract.arbSalaryProjection != null) {
-            tdStatus.classList.add("is-estimate-arb");
-            tdStatus.setAttribute("data-contract-color", "arb");
-          } else {
-            tdStatus.setAttribute("data-contract-color", contract.type);
-          }
-
-          if (contract.type.includes("ARB")) {
-            var arb = contract.type
-              .replace(" (TBD)", "")
-              .replace(" (PLACEHOLDER)", "");
-
-            if (arb.toLowerCase() == "pre-arb") {
-              tdStatus.textContent = "PRE-ARB";
-            } else if (arb != "PRE-ARB" && arb.includes("ARB")) {
-              var arbNum = arb.trim().replace("ARB ", "").replace("ARB", "");
-              if (arbNum.trim() != "") {
-              } else {
-                if (
-                  arbNum.trim() == "" &&
-                  playerData.contractYears.length > 1
-                ) {
-                  var tempArb = playerData.contractYears[
-                    index + 1
-                  ].type.replace("ARB ", "");
-
-                  if (
-                    tempArb.trim() == "" &&
-                    playerData.contractYears.length > 2
-                  ) {
-                    tempArb = playerData.contractYears[index + 2].type.replace(
-                      "ARB ",
-                      ""
-                    );
-                    arbNum = tempArb - 2;
-                  } else {
-                    arbNum = tempArb - 1;
-                  }
-                } else {
-                  arbNum = "";
-                }
-              }
-              if (contract.arbSalaryProjection != null) {
-                tdStatus.textContent =
-                  "ARB " +
-                  arbNum +
-                  " - " +
-                  convertToMillions(
-                    contract.arbSalaryProjection.toLocaleString()
-                  );
-              } else {
-                tdStatus.textContent = "ARB " + arbNum;
-              }
-            }
-          } else {
-            tdStatus.textContent = convertToMillions(
-              contract.salary.toLocaleString()
-            );
-          }
-          row.appendChild(tdStatus);
-
-          tbody.appendChild(row);
-        }
-      });
-
-      table.appendChild(tbody);
-
-      hoverTable.style.left = `${event.pageX + 10}px`;
-      hoverTable.style.top = `${event.pageY + 10}px`;
-      hoverTable.style.display = "block";
-    }
-  }
-}
-
-// Function to hide the hover table
-function hideHoverTable() {
-  hoverTable.style.display = "none";
-}
-
-// Function to attach event listeners to the target <td> elements
-function attachEventListeners() {
-  const clubControlCells = document.querySelectorAll(
-    'td[data-col-id="ClubControl"]'
-  );
-  clubControlCells.forEach((cell) => {
-    cell.addEventListener("mouseover", showHoverTable);
-    cell.addEventListener("mouseout", hideHoverTable);
-  });
-}
-
 // Create an observer instance for the loading div
 const loadingDivObserver = new MutationObserver((mutationsList) => {
   if (window.location.href.includes("leaders/major-league")) {
-    for (let mutation of mutationsList) {
-      if (mutation.target.localName == "tbody") {
-        addFreeAgentYearColumn();
-        qsUpdated = false;
-        break;
-      }
+    var url = window.location.href;
 
-      for (let removedNode of mutation.removedNodes) {
-        if (
-          removedNode.nodeType === Node.ELEMENT_NODE &&
-          removedNode.classList.contains("fgui-loading-screen")
-        ) {
+    if (currentUrl != url) {
+      qsUpdated = true;
+      currentUrl = url;
+    }
+
+    if (!qsUpdated) {
+      for (let mutation of mutationsList) {
+        if (mutation.target.localName == "tbody") {
           addFreeAgentYearColumn();
           qsUpdated = false;
           break;
         }
+
+        for (let removedNode of mutation.removedNodes) {
+          if (
+            removedNode.nodeType === Node.ELEMENT_NODE &&
+            removedNode.classList.contains("fgui-loading-screen")
+          ) {
+            addFreeAgentYearColumn();
+            qsUpdated = false;
+            break;
+          }
+        }
       }
     }
     if (qsUpdated) {
-      addFreeAgentYearColumn();
+      getPageData();
+      updateUI();
       qsUpdated = false;
     }
   }
@@ -472,181 +385,41 @@ const initialObserver = new MutationObserver((mutations) => {
           table.querySelectorAll("tbody tr").length > 1 &&
           processed == false
         ) {
-          addFreeAgentYearColumn();
+          updateUI();
           processed = true;
           initialObserver.disconnect();
         }
       }
     });
+    currentUrl = window.location.href;
   }
 });
 
-// Function to calculate luminance
-function getLuminance(hex) {
-  const rgb = parseInt(hex.slice(1), 16); // Convert hex to RGB
-  const r = (rgb >> 16) & 0xff;
-  const g = (rgb >> 8) & 0xff;
-  const b = (rgb >> 0) & 0xff;
-
-  // Calculate luminance
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return luminance;
-}
-
-// Function to update the UI with the highlight color
-function updateHighlightColor(element, color) {
-  element.style.setProperty("background-color", color, "important");
-  const textColor = getLuminance(color) < 128 ? "white" : "black";
-  element.style.setProperty("color", textColor, "important");
-
-  // Update the color of any anchor tags within the element
-  const anchorTags = element.getElementsByTagName("a");
-  for (let anchor of anchorTags) {
-    anchor.style.setProperty("color", textColor, "important");
-  }
-}
-
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === "sync") {
-    if (changes.highlightArb) {
-      highlightArb = changes.highlightArb.newValue;
-    }
-    if (changes.arbColor) {
-      arbColor = changes.arbColor.newValue;
-    }
-    if (changes.highlightPreArb) {
-      highlightPreArb = changes.highlightPreArb.newValue;
-    }
-    if (changes.preArbColor) {
-      preArbColor = changes.preArbColor.newValue;
-    }
-    if (changes.highlightLessThanOneYear) {
-      highlightLessThanOneYear = changes.highlightLessThanOneYear.newValue;
-    }
-    if (changes.lessThanOneYearColor) {
-      lessThanOneYearColor = changes.lessThanOneYearColor.newValue;
-    }
-    // Call a function to update the UI with the new settings
-    updateUI();
-  }
+initialObserver.observe(document.body, {
+  childList: true,
+  subtree: true,
 });
+
+// Start observing the entire body for additions and removals of loading divs
+loadingDivObserver.observe(body, { childList: true, subtree: true });
 
 function updateUI() {
   console.log("Updating UI with new settings...");
   addFreeAgentYearColumn();
 }
 
-chrome.storage.sync.get(
-  [
-    "highlightArb",
-    "arbColor",
-    "highlightPreArb",
-    "preArbColor",
-    "highlightLessThanOneYear",
-    "lessThanOneYearColor",
-  ],
-  (data) => {
-    if (data.highlightArb) {
-      console.log(
-        "Highlighting arbitration players with color:",
-        data.arbColor
-      );
-      highlightArb = data.highlightArb;
-      arbColor = data.arbColor;
-    } else {
-      console.log("Removing Highlighting arbitration players");
-      highlightArb = false;
-      arbColor = "#ff0000"; // Default color
-    }
-
-    if (data.highlightPreArb) {
-      console.log(
-        "Highlighting prearbitration players with color:",
-        data.preArbColor
-      );
-      highlightPreArb = data.highlightPreArb;
-      preArbColor = data.preArbColor;
-    } else {
-      console.log("Removing Highlighting arbitration players");
-      highlightPreArb = false;
-      preArbColor = "#ff0000"; // Default color
-    }
-
-    if (data.highlightLessThanOneYear) {
-      console.log(
-        "Highlighting one year remaining players with color:",
-        data.lessThanOneYearColor
-      );
-      highlightLessThanOneYear = data.highlightLessThanOneYear;
-      lessThanOneYearColor = data.lessThanOneYearColor;
-    } else {
-      console.log("Removing Highlighting one year remaining players");
-      highlightLessThanOneYear = false;
-      lessThanOneYearColor = "#ff0000"; // Default color
-    }
-    updateUI();
-  });
-
-function getPayrollData() {
-  const localStorageKey = "fangraphsFreeAgentData";
-  const apiEndpoint =
-    "https://fangraphs.azurewebsites.net/api/GetPayrollsTest?"; // Replace with your API endpoint
-  const oneDay = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-
+function getPageData() {
+  const localStorageKey = "leadersMajorLeagueData";
   // Retrieve data from localStorage
-  freeAgentData = JSON.parse(localStorage.getItem(localStorageKey)) || {};
-
-  // Check if data is older than 1 day
-  if (
-    freeAgentData.timestamp &&
-    Date.now() - freeAgentData.timestamp < oneDay
-  ) {
-    // Data is valid (less than 1 day old)
-    console.log("Using cached data:", freeAgentData.data);
-
-    if (freeAgentData.data !== undefined) {
-      initialObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
-
-      // Start observing the entire body for additions and removals of loading divs
-      loadingDivObserver.observe(body, { childList: true, subtree: true });
-
-      qsUpdated = false;
-    }
-  } else {
-    // Data is older than 1 day or doesn't exist, fetch new data
-    fetch(apiEndpoint)
-      .then((response) => response.json())
-      .then((newData) => {
-        // Store new data along with the current timestamp
-        freeAgentData = {
-          data: newData,
-          timestamp: Date.now(),
-        };
-        localStorage.setItem(localStorageKey, JSON.stringify(freeAgentData));
-
-        if (freeAgentData.data !== undefined) {
-          initialObserver.observe(document.body, {
-            childList: true,
-            subtree: true,
-          });
-
-          // Start observing the entire body for additions and removals of loading divs
-          loadingDivObserver.observe(body, { childList: true, subtree: true });
-
-          qsUpdated = false;
-        }
-
-        // Use the new data
-        console.log("Fetched and updated data:", freeAgentData.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }
+  leadersMajorLeagueData =
+    JSON.parse(localStorage.getItem(localStorageKey)) || {};
 }
 
-getPayrollData();
-getStorage();
+const script = document.createElement("script");
+script.src = chrome.runtime.getURL("scripts/override-fetch.js"); // Load from extension files
+script.onload = () => script.remove(); // Remove after loading to clean up
+
+// Append the script to the document
+document.documentElement.appendChild(script);
+
+getPageData();
