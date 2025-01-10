@@ -2,6 +2,9 @@
 
 Simple Chromium-based browser extension that adds a additional data to the leaderboards page of Fangraphs.com. The purpose of this extension is to provide easier access to when a baseball player becomes a free agent or in baseball terms "club control".
 
+If you like this extension, feel free to [buy me a coffee!](https://buymeacoffee.com/isaacrlevin)
+
+
 ## Install
 
 | Chrome | Firefox | Edge |
@@ -28,21 +31,3 @@ There is also an options page when you click on the extension icon in the browse
 - Players with less than one year left on their contract
 
 ![alt text](https://raw.githubusercontent.com/isaacrlevin/FangraphsClubControlExtension/refs/heads/main/images/options.png)
-
-
-### Development
-
-**Initial setup:**
-
-- Clone repo
-
-**To install your local build to Chrome/Edge**
-
-- Open Chrome and go to `chrome://extensions`
-- Enable "Developer mode",
-- Click "Load unpacked",
-- Select the `src` folder you built above.
-
-
-## Buy me a Coffee
-If you like this extension, feel free to [buy me a coffee!](https://buymeacoffee.com/isaacrlevin)

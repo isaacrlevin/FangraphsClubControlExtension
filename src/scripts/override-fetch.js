@@ -9,7 +9,6 @@
 
     XMLHttpRequest.prototype.send = function (body) {
         // Check if the URL matches the desired pattern
-        console.log("Intercepted XHR to:", this._interceptedUrl);
         if (this._interceptedUrl && this._interceptedUrl.includes("api/leaders/major-league/data")) {
             console.log("Intercepted XHR to:", this._interceptedUrl);
 
@@ -28,8 +27,6 @@
                                 return;
                             }
                         }
-
-
                         const currentData = JSON.parse(localStorage.getItem("leadersMajorLeagueData")) || [];
 
                         data.forEach(newPlayer => {
@@ -53,7 +50,6 @@
                 }
             });
         }
-
         return originalSend.apply(this, arguments); // Call the original send method
     };
 })();
