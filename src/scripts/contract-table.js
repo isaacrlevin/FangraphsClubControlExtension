@@ -122,7 +122,7 @@ function showHoverTable(event) {
             tdStatus.setAttribute("data-stat", contract.season);
             tdStatus.classList.add("cell-painted");
 
-            if (contract.arbSalaryProjection != null) {
+            if (contract.arbSalaryProjection != null && contract.salary == null) {
               tdStatus.classList.add("is-estimate-arb");
               tdStatus.setAttribute("data-contract-color", "arb");
             } else {

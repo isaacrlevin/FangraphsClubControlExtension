@@ -146,12 +146,17 @@ function getFreeAgentYear(playerName) {
         }
       }
 
-      if (player.contractYears[0].type.includes("ARB")) {
+      if (
+        player.contractYears[0].type.includes("ARB") ||
+        player.contractYears[0].arbYear != 0
+      ) {
         //Player Currently in ARB Year
         var arbNum = player.contractYears[0].type.replace("ARB ", "");
         if (arbNum.includes("TBD")) {
           var tempArb = player.contractYears[1].type.replace("ARB ", "");
           arbNum = tempArb - 1;
+        } else if (player.contractYears[0].arbYear != 0) {
+          arbNum = player.contractYears[0].arbYear;
         }
         return (
           "ARB" +
