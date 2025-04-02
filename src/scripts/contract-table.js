@@ -107,6 +107,9 @@ function showHoverTable(event) {
       const tbody = document.createElement("tbody");
 
       playerData.contractYears.forEach((contract, index) => {
+        if (contract.type.includes("FREE AGENT")) {
+          return;
+        }
         if (contract.season >= 2025) {
           if (contract.type.includes("GUARANTEED") && contract.salary == null) {
           } else {
@@ -122,7 +125,10 @@ function showHoverTable(event) {
             tdStatus.setAttribute("data-stat", contract.season);
             tdStatus.classList.add("cell-painted");
 
-            if (contract.arbSalaryProjection != null && contract.salary == null) {
+            if (
+              contract.arbSalaryProjection != null &&
+              contract.salary == null
+            ) {
               tdStatus.classList.add("is-estimate-arb");
               tdStatus.setAttribute("data-contract-color", "arb");
             } else {

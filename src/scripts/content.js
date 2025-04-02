@@ -4,6 +4,7 @@ if (typeof browser === "undefined") {
 
 let leadersMajorLeagueData = {};
 let qsUpdated = false;
+let columnAdded = false;
 let highlightArb = false;
 let arbColor = "#ff0000";
 let highlightPreArb = false;
@@ -99,6 +100,10 @@ chrome.storage.sync.get(
 );
 
 function getFreeAgentYear(playerName) {
+  if (freeAgentData.data === undefined) {
+    console.log("No free agent data available");
+    return;
+  }
   var player = freeAgentData.data.find(function (element) {
     return (
       element.contractSummary.playerName.toLowerCase() ==
@@ -336,7 +341,9 @@ function addFreeAgentYearColumn() {
         globalThis.updateHighlightColor(row, lessThanOneYearColor);
       }
 
+      if (globalThis.attachEventListeners != undefined) {
       globalThis.attachEventListeners();
+      }
     }
   });
 }
@@ -350,6 +357,7 @@ const loadingDivObserver = new MutationObserver((mutationsList) => {
 
     if (currentUrl != url) {
       qsUpdated = true;
+      columnAdded = false;
       currentUrl = url;
     }
 
@@ -358,15 +366,19 @@ const loadingDivObserver = new MutationObserver((mutationsList) => {
         if (mutation.target.localName == "tbody") {
           addFreeAgentYearColumn();
           qsUpdated = false;
+          columnAdded = true;
           break;
         }
-
+        if (columnAdded) {
+          return;
+        }
         for (let removedNode of mutation.removedNodes) {
           if (
             removedNode.nodeType === Node.ELEMENT_NODE &&
             removedNode.classList.contains("fgui-loading-screen")
           ) {
             addFreeAgentYearColumn();
+            columnAdded = true;
             qsUpdated = false;
             break;
           }
