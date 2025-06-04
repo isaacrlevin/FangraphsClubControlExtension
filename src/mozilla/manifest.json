@@ -17,8 +17,8 @@
   },
   "manifest_version": 3,
   "host_permissions": [
-    "https://fangraphs.azurewebsites.net/api/GetPayrolls",
-    "https://www.fangraphs.com/leaders/major-league*"
+    "https://fangraphs.azurewebsites.net/*",
+    "https://www.fangraphs.com/*"
   ],
   "web_accessible_resources": [
     {
@@ -28,6 +28,9 @@
       "matches": ["<all_urls>"]
     }
   ],
+    "background": {
+    "scripts": ["scripts/background.js"]
+  },
   "content_scripts": [
     {
       "js": [
@@ -40,7 +43,7 @@
         "styles/content.css"
       ],
       "matches": [
-        "https://www.fangraphs.com/leaders/major-league*"
+        "https://www.fangraphs.com/*"
       ],
       "run_at": "document_end"
     }

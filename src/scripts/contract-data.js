@@ -1,46 +1,57 @@
 globalThis.payrollData = () => {
   const localStorageKey = "fangraphsFreeAgentData";
-  const apiEndpoint =
-    "https://fangraphs.azurewebsites.net/api/GetPayrollsTest?"; // Replace with your API endpoint
   const oneDay = 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
-  // Retrieve data from localStorage
-  let freeAgentData = JSON.parse(localStorage.getItem(localStorageKey)) || {};
+  // For debugging - check if function is called
+  console.log("payrollData function called");
 
-  // Check if data is older than 1 day
-  if (
-    freeAgentData.timestamp &&
-    Date.now() - freeAgentData.timestamp < oneDay
-  ) {
-    // Data is valid (less than 1 day old)
-    console.log("Using cached contract data:", freeAgentData.data);
+  // Create a promise for the async data retrieval
+  return new Promise((resolve) => {
+    // Retrieve data from localStorage
+    let freeAgentData = JSON.parse(localStorage.getItem(localStorageKey)) || {};
 
-    if (freeAgentData.data !== undefined) {
-      qsUpdated = false;
+    // Check if data is older than 1 day
+    if (
+      freeAgentData.timestamp &&
+      Date.now() - freeAgentData.timestamp < oneDay
+    ) {
+      // Data is valid (less than 1 day old)
+      console.log("Using cached contract data:", freeAgentData.data);
+
+      if (freeAgentData.data !== undefined) {
+        qsUpdated = false;
+      }
+
+      resolve(freeAgentData); // Return cached data
+      return;
     }
-  } else {
+
     // Data is older than 1 day or doesn't exist, fetch new data
-    fetch(apiEndpoint)
-      .then((response) => response.json())
-      .then((newData) => {
+    console.log("Requesting fresh data from background script...");
+
+    // Send message to background script
+    chrome.runtime.sendMessage({action: "fetchPayrollData"}, (response) => {
+      console.log("Response received from background script:", response);
+
+      if (response && response.success) {
         // Store new data along with the current timestamp
         freeAgentData = {
-          data: newData,
+          data: JSON.parse(response.data),
           timestamp: Date.now(),
         };
-        localStorage.setItem(localStorageKey, JSON.stringify(freeAgentData));
 
         if (freeAgentData.data !== undefined) {
           qsUpdated = false;
         }
 
-        // Use the new data
-        console.log("Fetched and updated data:", freeAgentData.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }
+        // Store the new data in localStorage
+        localStorage.setItem(localStorageKey, JSON.stringify(freeAgentData));
+        console.log("Updated contract data:", freeAgentData.data);
+      } else {
+        console.error("Error fetching data:", response ? response.error : "No response");
+      }
 
-  return freeAgentData;
+      resolve(freeAgentData);
+    });
+  });
 };

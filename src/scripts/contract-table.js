@@ -76,7 +76,7 @@ function showHoverTable(event) {
   if (playerNameCell) {
     const playerName = playerNameCell.innerText.trim();
 
-    var playerData = freeAgentData.data.find(function (element) {
+    var playerData = contractData.data.find(function (element) {
       return (
         element.contractSummary.playerName.toLowerCase() ==
         playerName.toLowerCase()

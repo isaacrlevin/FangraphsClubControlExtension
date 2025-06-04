@@ -2,7 +2,8 @@ if (typeof browser === "undefined") {
   var browser = chrome;
 }
 
-let leadersMajorLeagueData = {};
+let contractData = {};
+leadersMajorLeagueData = {};
 let qsUpdated = false;
 let columnAdded = false;
 let highlightArb = false;
@@ -13,12 +14,28 @@ let highlightLessThanOneYear = false;
 let lessThanOneYearColor = "#ff0000";
 let currentUrl = "";
 
-let freeAgentData = globalThis.payrollData();
+async function initiate() {
+  globalThis
+    .payrollData()
+    .then((data) => {
+      contractData = data;
+      getStats();
+      updateUI();
+    })
+    .catch((error) => {
+      console.error("Error getting payroll data:", error);
+    });
+}
+
+function getStats() {
+  leadersMajorLeagueData =
+    JSON.parse(localStorage.getItem("leadersMajorLeagueData")) || {};
+}
 
 window.addEventListener("storage", (event) => {
   if (event.storageArea === localStorage) {
     // This means localStorage was modified
-    getPageData();
+    contractData = globalThis.payrollData();
   }
 });
 
@@ -43,7 +60,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
       lessThanOneYearColor = changes.lessThanOneYearColor.newValue;
     }
     // Call a function to update the UI with the new settings
-    updateUI();
+    initiate();
   }
 });
 
@@ -95,16 +112,16 @@ chrome.storage.sync.get(
       highlightLessThanOneYear = false;
       lessThanOneYearColor = "#ff0000"; // Default color
     }
-    updateUI();
+    initiate();
   }
 );
 
 function getFreeAgentYear(playerName) {
-  if (freeAgentData.data === undefined) {
+  if (contractData.data === undefined) {
     console.log("No free agent data available");
     return;
   }
-  var player = freeAgentData.data.find(function (element) {
+  var player = contractData.data.find(function (element) {
     return (
       element.contractSummary.playerName.toLowerCase() ==
       playerName.toLowerCase()
@@ -126,6 +143,13 @@ function getFreeAgentYear(playerName) {
           " | " +
           globalThis.convertToMillions(
             player.contractYears[0].arbSalaryProjection.toLocaleString()
+          );
+      } else {
+        val =
+          val +
+          " | " +
+          globalThis.convertToMillions(
+            player.contractYears[0].salary.toLocaleString()
           );
       }
       return val;
@@ -259,7 +283,6 @@ function addFreeAgentYearColumn() {
     savantLinkTH.setAttribute("data-stat", "BaseballSavantLink");
     savantLinkTH.classList.add("align-left");
     savantLinkTH.innerText = "Baseball Savant";
-    //headerRow.insertBefore(savantLinkTH, headerRow.cells[headerRow.cells.length]);
     headerRow.appendChild(savantLinkTH);
   }
 
@@ -295,13 +318,13 @@ function addFreeAgentYearColumn() {
           return element.PlayerName.toLowerCase() == playerName.toLowerCase();
         });
 
-        if (playerData !== undefined) {
-          const savantLink = document.createElement("td");
-          savantLink.setAttribute("data-col-id", "BaseballSavantLink");
-          savantLink.setAttribute("data-stat", "BaseballSavantLink");
-          savantLink.classList.add("align-left");
+        const savantLink = document.createElement("td");
+        savantLink.setAttribute("data-col-id", "BaseballSavantLink");
+        savantLink.setAttribute("data-stat", "BaseballSavantLink");
+        savantLink.classList.add("align-left");
 
-          var savantUrl = `https://baseballsavant.mlb.com/savant-player/${playerData.PlayerName.toLowerCase().replace(
+        if (playerData !== undefined) {
+          var savantUrl = `https://baseballsavant.mlb.com/savant-player/${playerData.PlayerNameRoute.toLowerCase().replace(
             " ",
             "-"
           )}-${playerData.xMLBAMID}`;
@@ -311,11 +334,8 @@ function addFreeAgentYearColumn() {
           aTag.setAttribute("style", "color:blue !important");
           aTag.setAttribute("target", "_blank");
           savantLink.appendChild(aTag);
-          //row.insertBefore(savantLink, row.cells[3]);
-          row.appendChild(savantLink);
-        } else {
-          var foo = "";
         }
+        row.appendChild(savantLink);
       }
 
       const divider = document.createElement("td");
@@ -342,7 +362,7 @@ function addFreeAgentYearColumn() {
       }
 
       if (globalThis.attachEventListeners != undefined) {
-      globalThis.attachEventListeners();
+        globalThis.attachEventListeners();
       }
     }
   });
@@ -386,8 +406,7 @@ const loadingDivObserver = new MutationObserver((mutationsList) => {
       }
     }
     if (qsUpdated) {
-      getPageData();
-      updateUI();
+      initiate();
       qsUpdated = false;
     }
   }
@@ -403,7 +422,7 @@ const initialObserver = new MutationObserver((mutations) => {
           table.querySelectorAll("tbody tr").length > 1 &&
           processed == false
         ) {
-          updateUI();
+          initiate();
           processed = true;
           initialObserver.disconnect();
         }
@@ -413,7 +432,7 @@ const initialObserver = new MutationObserver((mutations) => {
   }
 });
 
-initialObserver.observe(document.body, {
+initialObserver.observe(body, {
   childList: true,
   subtree: true,
 });
@@ -426,18 +445,9 @@ function updateUI() {
   addFreeAgentYearColumn();
 }
 
-function getPageData() {
-  const localStorageKey = "leadersMajorLeagueData";
-  // Retrieve data from localStorage
-  leadersMajorLeagueData =
-    JSON.parse(localStorage.getItem(localStorageKey)) || {};
-}
-
 const script = document.createElement("script");
 script.src = chrome.runtime.getURL("scripts/override-fetch.js"); // Load from extension files
 script.onload = () => script.remove(); // Remove after loading to clean up
 
 // Append the script to the document
 document.documentElement.appendChild(script);
-
-getPageData();

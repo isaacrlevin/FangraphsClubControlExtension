@@ -10,8 +10,6 @@
     XMLHttpRequest.prototype.send = function (body) {
         // Check if the URL matches the desired pattern
         if (this._interceptedUrl && this._interceptedUrl.includes("api/leaders/major-league/data")) {
-            console.log("Intercepted XHR to:", this._interceptedUrl);
-
             this.addEventListener("load", function () {
                 if (this.status >= 200 && this.status < 300) {
                     try {
@@ -41,9 +39,9 @@
                         });
                         // Save the data to storage (using localStorage here as an example)
                         localStorage.setItem("leadersMajorLeagueData", JSON.stringify(currentData));
-                        console.log("Response data saved to storage:", currentData);
+                        console.log("Fetched and updated stats data:", currentData);
                     } catch (error) {
-                        console.error("Error parsing XHR response:", error);
+                        console.error("Fetched and updated stats data:", error);
                     }
                 } else {
                     console.warn("XHR request failed with status:", this.status);
