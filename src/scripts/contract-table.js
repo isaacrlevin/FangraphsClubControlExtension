@@ -76,12 +76,29 @@ function showHoverTable(event) {
   if (playerNameCell) {
     const playerName = playerNameCell.innerText.trim();
 
-    var playerData = contractData.data.find(function (element) {
-      return (
-        element.contractSummary.playerName.toLowerCase() ==
-        playerName.toLowerCase()
-      );
-    });
+  var playerList = contractData.data.filter(function (element) {
+    return (
+      element.contractSummary.playerName.toLowerCase() ==
+      playerName.toLowerCase()
+    );
+  });
+
+    var playerData = {};
+  if (playerList.length == 0) {
+return;
+  } else if (playerList.length == 1) {
+    playerData = playerList[0];
+  } else {
+    playerData.contractSummary = playerList[playerList.length - 1].contractSummary;
+    playerData.contractYears = [];
+    for (var i = 0; i < playerList.length; ++i)
+    {
+      for (var j = 0; j < playerList[i].contractYears.length; ++j) {
+          playerData.contractYears.push(playerList[i].contractYears[j]);
+      }
+    }
+  }
+
 
     var table = document.getElementById("hover-table");
 

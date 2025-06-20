@@ -9,9 +9,10 @@ let columnAdded = false;
 let highlightArb = false;
 let arbColor = "#ff0000";
 let highlightPreArb = false;
-let preArbColor = "#ff0000";
+let preArbColor = "#00ff00";
 let highlightLessThanOneYear = false;
-let lessThanOneYearColor = "#ff0000";
+let lessThanOneYearColor = "#0000ff";
+let hideUnhighlighted = false;
 let currentUrl = "";
 
 async function initiate() {
@@ -59,6 +60,9 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     if (changes.lessThanOneYearColor) {
       lessThanOneYearColor = changes.lessThanOneYearColor.newValue;
     }
+    if (changes.hideUnhighlighted) {
+      hideUnhighlighted = changes.hideUnhighlighted.newValue;
+    }
     // Call a function to update the UI with the new settings
     initiate();
   }
@@ -72,6 +76,7 @@ chrome.storage.sync.get(
     "preArbColor",
     "highlightLessThanOneYear",
     "lessThanOneYearColor",
+    "hideUnhighlighted",
   ],
   (data) => {
     if (data.highlightArb) {
@@ -97,7 +102,7 @@ chrome.storage.sync.get(
     } else {
       console.log("Removing Highlighting arbitration players");
       highlightPreArb = false;
-      preArbColor = "#ff0000"; // Default color
+      preArbColor = "#00ff00"; // Default color
     }
 
     if (data.highlightLessThanOneYear) {
@@ -110,7 +115,7 @@ chrome.storage.sync.get(
     } else {
       console.log("Removing Highlighting one year remaining players");
       highlightLessThanOneYear = false;
-      lessThanOneYearColor = "#ff0000"; // Default color
+      lessThanOneYearColor = "#0000ff"; // Default color
     }
     initiate();
   }
@@ -119,14 +124,29 @@ chrome.storage.sync.get(
 function getFreeAgentYear(playerName) {
   if (contractData.data === undefined) {
     console.log("No free agent data available");
-    return;
+    return "NOT ON ANY ACTIVE PAYROLLS";
   }
-  var player = contractData.data.find(function (element) {
+  var playerList = contractData.data.filter(function (element) {
     return (
       element.contractSummary.playerName.toLowerCase() ==
       playerName.toLowerCase()
     );
   });
+
+  var player = {};
+  if (playerList.length == 0) {
+    return "NOT ON ANY ACTIVE PAYROLLS";
+  } else if (playerList.length == 1) {
+    player = playerList[0];
+  } else {
+    player.contractSummary = playerList[playerList.length - 1].contractSummary;
+    player.contractYears = [];
+    for (var i = 0; i < playerList.length; ++i) {
+      for (var j = 0; j < playerList[i].contractYears.length; ++j) {
+        player.contractYears.push(playerList[i].contractYears[j]);
+      }
+    }
+  }
 
   if (player) {
     //remove items from player.ContractYears that are older than 2024
@@ -360,7 +380,18 @@ function addFreeAgentYearColumn() {
       } else if (freeAgentYear.includes("2025") && highlightLessThanOneYear) {
         globalThis.updateHighlightColor(row, lessThanOneYearColor);
       }
-
+      if (hideUnhighlighted) {
+        //get background color from the row
+        const bgColor = window
+          .getComputedStyle(row)
+          .getPropertyValue("background-color");
+        // if the background color is white, hide the row
+        if (bgColor === "rgb(255, 255, 255)") {
+          row.style.display = "none";
+        }
+      } else {
+        row.style.display = "table-row";
+      }
       if (globalThis.attachEventListeners != undefined) {
         globalThis.attachEventListeners();
       }
