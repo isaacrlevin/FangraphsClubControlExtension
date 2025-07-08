@@ -1,8 +1,9 @@
 if (typeof browser === "undefined") {
   var browser = chrome;
 }
-
-let contractData = {};
+if (typeof contractData === "undefined" || contractData === null) {
+  contractData = globalThis.payrollData();
+}
 leadersMajorLeagueData = {};
 let qsUpdated = false;
 let columnAdded = false;

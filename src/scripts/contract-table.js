@@ -1,3 +1,7 @@
+if (typeof contractData === "undefined" || contractData === null) {
+  contractData = globalThis.payrollData();
+}
+
 function createHoverTable() {
   const root = document.createElement("div");
   root.id = "root-roster-resource";
@@ -67,38 +71,62 @@ function createHoverTable() {
 
 const hoverTable = createHoverTable();
 
-// Function to show the hover table
+function isPromise(p) {
+  if (typeof p === "object" && typeof p.then === "function") {
+    return true;
+  }
+
+  return false;
+}
+
 function showHoverTable(event) {
-  const cell = event.currentTarget;
+  var cell = event.currentTarget;
+  var pageX = event.pageX;
+  var pageY = event.pageY;
+  setTimeout(() => {
+   if(isPromise(contractData))
+    {
+      contractData.then((data) => {
+        contractData = data;
+        displayHoverTable(cell, pageX, pageY);
+      });
+    }
+  else{
+    displayHoverTable(cell, pageX, pageY);
+  }
+},100)
+}
+
+// Function to show the hover table
+function displayHoverTable(cell, pageX, pageY) {
   const row = cell.parentElement;
 
   const playerNameCell = row.querySelector("td a");
   if (playerNameCell) {
     const playerName = playerNameCell.innerText.trim();
 
-  var playerList = contractData.data.filter(function (element) {
-    return (
-      element.contractSummary.playerName.toLowerCase() ==
-      playerName.toLowerCase()
-    );
-  });
+    var playerList = contractData.data.filter(function (element) {
+      return (
+        element.contractSummary.playerName.toLowerCase() ==
+        playerName.toLowerCase()
+      );
+    });
 
     var playerData = {};
-  if (playerList.length == 0) {
-return;
-  } else if (playerList.length == 1) {
-    playerData = playerList[0];
-  } else {
-    playerData.contractSummary = playerList[playerList.length - 1].contractSummary;
-    playerData.contractYears = [];
-    for (var i = 0; i < playerList.length; ++i)
-    {
-      for (var j = 0; j < playerList[i].contractYears.length; ++j) {
+    if (playerList.length == 0) {
+      return;
+    } else if (playerList.length == 1) {
+      playerData = playerList[0];
+    } else {
+      playerData.contractSummary =
+        playerList[playerList.length - 1].contractSummary;
+      playerData.contractYears = [];
+      for (var i = 0; i < playerList.length; ++i) {
+        for (var j = 0; j < playerList[i].contractYears.length; ++j) {
           playerData.contractYears.push(playerList[i].contractYears[j]);
+        }
       }
     }
-  }
-
 
     var table = document.getElementById("hover-table");
 
@@ -212,8 +240,8 @@ return;
 
       table.appendChild(tbody);
 
-      hoverTable.style.left = `${event.pageX + 10}px`;
-      hoverTable.style.top = `${event.pageY + 10}px`;
+      hoverTable.style.left = `${pageX + 10}px`;
+      hoverTable.style.top = `${pageY + 10}px`;
       hoverTable.style.display = "block";
     }
   }
