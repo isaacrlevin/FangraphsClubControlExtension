@@ -84,17 +84,15 @@ function showHoverTable(event) {
   var pageX = event.pageX;
   var pageY = event.pageY;
   setTimeout(() => {
-   if(isPromise(contractData))
-    {
+    if (isPromise(contractData)) {
       contractData.then((data) => {
         contractData = data;
         displayHoverTable(cell, pageX, pageY);
       });
+    } else {
+      displayHoverTable(cell, pageX, pageY);
     }
-  else{
-    displayHoverTable(cell, pageX, pageY);
-  }
-},100)
+  }, 100);
 }
 
 // Function to show the hover table
@@ -241,9 +239,11 @@ function displayHoverTable(cell, pageX, pageY) {
                 }
               }
             } else {
-              tdStatus.textContent = convertToMillions(
-                contract.salary.toLocaleString()
-              );
+              if (contract.salary != null) {
+                tdStatus.textContent = convertToMillions(
+                  contract.salary.toLocaleString()
+                );
+              }
             }
             row.appendChild(tdStatus);
 
