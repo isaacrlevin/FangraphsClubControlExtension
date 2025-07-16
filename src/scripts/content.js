@@ -13,6 +13,9 @@ let highlightPreArb = false;
 let preArbColor = "#00ff00";
 let highlightLessThanOneYear = false;
 let lessThanOneYearColor = "#0000ff";
+let highlightLastYearControl = false;
+let lastYearControl = new Date().getFullYear();
+let lastYearControlColor = "#ffa500";
 let hideUnhighlighted = false;
 let currentUrl = "";
 
@@ -61,6 +64,15 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     if (changes.lessThanOneYearColor) {
       lessThanOneYearColor = changes.lessThanOneYearColor.newValue;
     }
+    if (changes.highlightLastYearControl) {
+      highlightLastYearControl = changes.highlightLastYearControl.newValue;
+    }
+    if (changes.lastYearControl) {
+      lastYearControl = changes.lastYearControl.newValue;
+    }
+    if (changes.lastYearControlColor) {
+      lastYearControlColor = changes.lastYearControlColor.newValue;
+    }
     if (changes.hideUnhighlighted) {
       hideUnhighlighted = changes.hideUnhighlighted.newValue;
     }
@@ -77,6 +89,9 @@ chrome.storage.sync.get(
     "preArbColor",
     "highlightLessThanOneYear",
     "lessThanOneYearColor",
+    "highlightLastYearControl",
+    "lastYearControl",
+    "lastYearControlColor",
     "hideUnhighlighted",
   ],
   (data) => {
@@ -118,6 +133,22 @@ chrome.storage.sync.get(
       highlightLessThanOneYear = false;
       lessThanOneYearColor = "#0000ff"; // Default color
     }
+
+    if (data.highlightLastYearControl) {
+      console.log(
+        "Highlighting last year control players with color:",
+        data.lastYearControlColor
+      );
+      highlightLastYearControl = data.highlightLastYearControl;
+      lastYearControl = data.lastYearControl;
+      lastYearControlColor = data.lastYearControlColor;
+    } else {
+      console.log("Removing Highlighting last year control players");
+      highlightLastYearControl = false;
+      lastYearControl = new Date().getFullYear();
+      lastYearControlColor = "#ffa500"; // Default color
+    }
+
     initiate();
   }
 );
@@ -380,6 +411,18 @@ function addFreeAgentYearColumn() {
         globalThis.updateHighlightColor(row, arbColor);
       } else if (freeAgentYear.includes("2025") && highlightLessThanOneYear) {
         globalThis.updateHighlightColor(row, lessThanOneYearColor);
+      } else if (highlightLastYearControl) {
+        let controlYear = null;
+
+        if (freeAgentYear.includes("SIGNED THRU")) {
+          controlYear = parseInt(freeAgentYear.split(" ")[2]);
+        } else if (freeAgentYear.includes("FINAL ARB")) {
+          controlYear = parseInt(freeAgentYear.split("FINAL ARB ")[1]);
+        }
+
+        if (controlYear === parseInt(lastYearControl, 10)) {
+          globalThis.updateHighlightColor(row, lastYearControlColor);
+        }
       }
       if (hideUnhighlighted) {
         //get background color from the row

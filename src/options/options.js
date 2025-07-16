@@ -9,6 +9,9 @@ document.getElementById("save").addEventListener("click", () => {
   const lessThanOneYearColor = document.getElementById(
     "lessThanOneYearColor"
   ).value;
+  const highlightLastYearControl = document.getElementById("highlightLastYearControl").checked;
+  const lastYearControl = document.getElementById("lastYearControl").value;
+  const lastYearControlColor = document.getElementById("lastYearControlColor").value;
   const hideUnhighlighted =
     document.getElementById("hideUnhighlighted").checked;
 
@@ -20,6 +23,9 @@ document.getElementById("save").addEventListener("click", () => {
       preArbColor,
       highlightLessThanOneYear,
       lessThanOneYearColor,
+      highlightLastYearControl,
+      lastYearControl,
+      lastYearControlColor,
       hideUnhighlighted,
     },
     () => {
@@ -37,10 +43,11 @@ document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
     const highlightArb = document.getElementById("highlightArb").checked;
     const highlightPreArb = document.getElementById("highlightPreArb").checked;
     const highlightLessThanOneYear = document.getElementById("highlightLessThanOneYear").checked;
+    const highlightLastYearControl = document.getElementById("highlightLastYearControl").checked;
 
     //only allow the hideUnhighlighted checkbox if the user has enabled at least one of the other options
     const anyHighlightEnabled =
-      highlightArb || highlightPreArb || highlightLessThanOneYear;
+      highlightArb || highlightPreArb || highlightLessThanOneYear || highlightLastYearControl;
     if (!anyHighlightEnabled) {
       document.getElementById("hideUnhighlighted").disabled = true;
       document.getElementById("hideUnhighlighted").checked = false;
@@ -56,7 +63,21 @@ document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
 //     valueDisplay.textContent = slider.value;
 //   });
 
+// Initialize the year dropdown
+function initializeYearDropdown() {
+  const select = document.getElementById("lastYearControl");
+  const currentYear = new Date().getFullYear();
+  for (let year = currentYear; year <= currentYear + 10; year++) {
+    const option = document.createElement("option");
+    option.value = year;
+    option.textContent = year;
+    select.appendChild(option);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  initializeYearDropdown();
+
   chrome.storage.sync.get(
     [
       "highlightArb",
@@ -65,6 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
       "preArbColor",
       "highlightLessThanOneYear",
       "lessThanOneYearColor",
+      "highlightLastYearControl",
+      "lastYearControl",
+      "lastYearControlColor",
       "hideUnhighlighted",
     ],
     (data) => {
@@ -79,6 +103,12 @@ document.addEventListener("DOMContentLoaded", () => {
         data.highlightLessThanOneYear || false;
       document.getElementById("lessThanOneYearColor").value =
         data.lessThanOneYearColor || "#0000ff";
+      document.getElementById("highlightLastYearControl").checked =
+        data.highlightLastYearControl || false;
+      document.getElementById("lastYearControl").value =
+        data.lastYearControl || new Date().getFullYear();
+      document.getElementById("lastYearControlColor").value =
+        data.lastYearControlColor || "#ffa500";
       document.getElementById("hideUnhighlighted").checked =
         data.hideUnhighlighted || false;
     }

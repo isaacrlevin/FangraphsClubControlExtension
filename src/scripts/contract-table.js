@@ -150,6 +150,20 @@ function displayHoverTable(cell, pageX, pageY) {
 
       // Create tbody
       const tbody = document.createElement("tbody");
+      let lastControlYear = null;
+
+      // Find the last year before FREE AGENT
+      for (let i = playerData.contractYears.length - 1; i >= 0; i--) {
+        if (!playerData.contractYears[i].type.includes("FREE AGENT")) {
+          lastControlYear = playerData.contractYears[i].season;
+          break;
+        }
+      }
+
+      // Store last control year in the row's dataset for highlighting
+      if (lastControlYear !== null) {
+        row.dataset.lastControlYear = lastControlYear;
+      }
 
       playerData.contractYears.forEach((contract, index) => {
         if (contract.type.includes("FREE AGENT")) {
