@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Background script received fetch request");
 
     // Fetch data from API
-    fetch("https://fangraphs.azurewebsites.net/api/GetPayrollsTest?", {
+    fetch("https://fangraphsfunctions.azurewebsites.net/api/GetPayrollsTest?", {
       method: 'GET',
       headers: {
         'Accept': 'application/json',

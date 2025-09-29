@@ -17,7 +17,7 @@
   },
   "manifest_version": 3,
   "host_permissions": [
-    "https://fangraphs.azurewebsites.net/*",
+    "https://fangraphsfunctions.azurewebsites.net/*",
     "https://www.fangraphs.com/*"
   ],
   "web_accessible_resources": [
