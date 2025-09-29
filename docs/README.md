@@ -31,3 +31,5 @@ There is also an options page when you click on the extension icon in the browse
 - Players with less than one year left on their contract
 
 ![alt text](https://raw.githubusercontent.com/isaacrlevin/FangraphsClubControlExtension/refs/heads/main/images/options.png)
+
+
