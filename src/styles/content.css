@@ -38,3 +38,732 @@
     background-color: gold;
     color: black;
   }
+
+/* Modal styles for contract table */
+#contract-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+#contract-modal {
+  background: #fff;
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  padding: 16px;
+  position: relative;
+  margin: auto;
+}
+
+.contract-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 18px;
+  margin: 0 0 8px 0;
+  padding-right: 28px;
+}
+
+.contract-modal-content {
+  padding: 4px 0 0 0;
+}
+
+.player-name strong {
+  font-size: 18px;
+}
+
+.payroll_player-contract__ZNKMv strong {
+  font-size: 14px;
+}
+
+.contract-modal-close {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.contract-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.contract-table th, .contract-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.contract-table th {
+  background-color: #f2f2f2;
+}
+
+/* Make Club Control cells appear clickable like links */
+td[data-col-id="ClubControl"] {
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+td[data-col-id="ClubControl"]:hover {
+  color: #004499;
+}
+
+
+.payroll_roster-resource-payroll__IvpHA {
+    display: flex;
+    flex-direction: column
+}
+
+.payroll_roster-resource-payroll__IvpHA [data-contract-color="FREE AGENT"] {
+    background-color: gold!important;
+    color: #000
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color="FREE AGENT"] {
+    background-color: rgba(255,215,0,.8)
+}
+
+.payroll_roster-resource-payroll__IvpHA [data-contract-color=player],.payroll_roster-resource-payroll__IvpHA [data-contract-color^="PLAYER OPTION"] {
+    background-color: green;
+    color: #fff
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color=player],.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color^="PLAYER OPTION"] {
+    background-color: #004d00
+}
+
+.payroll_roster-resource-payroll__IvpHA [data-contract-color=team],.payroll_roster-resource-payroll__IvpHA [data-contract-color^="CLUB OPTION"] {
+    background-color: #ce2431;
+    color: #fff
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color=team],.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color^="CLUB OPTION"] {
+    background-color: rgb(162.5867768595,28.4132231405,38.673553719)
+}
+
+.payroll_roster-resource-payroll__IvpHA [data-contract-color="VESTING/CLUB"],.payroll_roster-resource-payroll__IvpHA [data-contract-color="VESTING/MUTUAL"],.payroll_roster-resource-payroll__IvpHA [data-contract-color=VESTING],.payroll_roster-resource-payroll__IvpHA [data-contract-color=vesting] {
+    background-color: #4682b4;
+    color: #fff
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color="VESTING/CLUB"],.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color="VESTING/MUTUAL"],.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color=VESTING],.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color=vesting] {
+    background-color: rgb(55.72,103.48,143.28)
+}
+
+.payroll_roster-resource-payroll__IvpHA [data-contract-color="MUTUAL OPTION"],.payroll_roster-resource-payroll__IvpHA [data-contract-color=mutual] {
+    background-color: #0000cd;
+    color: #fff
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color="MUTUAL OPTION"],.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color=mutual] {
+    background-color: #00009a
+}
+
+.payroll_roster-resource-payroll__IvpHA [data-contract-color=buyout] {
+    background-color: #90ee90;
+    color: #000
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [data-contract-color=buyout] {
+    background-color: hsl(120,73.4375%,64.9019607843%)
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=row-total] {
+    border-top: 3px solid #000!important;
+    font-weight: 600;
+    font-style: italic
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=row-total] td:first-child {
+    text-align: right!important;
+    padding-right: 5px
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=row-total] {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA [data-stat=subtotal] {
+    text-align: right;
+    font-weight: 600;
+    border-right: 3px solid!important
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [data-stat=subtotal] {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_excel-export__n_bCm {
+    align-self: flex-end
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] [class~=table-wrapper-outer] {
+    max-width: none
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] thead th {
+    background-color: #000;
+    color: #fff;
+    border: 2px solid #fff
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] thead th {
+    border-color: #555
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td {
+    text-align: center
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td .payroll_cell-painted__CQs5K {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td.payroll_cell-painted__CQs5K {
+    text-align: center
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[class~=roster-40] {
+    background-color: #ddd9c3
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] th[data-stat=Player] {
+    width: 120px
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[data-stat=Player] {
+    font-weight: 600;
+    background-color: #ddd9c3
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[data-stat=Player] a {
+    font-weight: 600
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[data-stat=Player] {
+    text-align: left
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[data-stat=Player] {
+    background-color: #665f38
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] tr:hover td[class~=roster-40],.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] tr:hover td[data-stat=Player] {
+    background-color: rgba(221,217,195,.5)
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] tr:hover td[class~=roster-40],.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] tr:hover td[data-stat=Player] {
+    background-color: rgba(102,95,56,.5)
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] [data-stat=Age] {
+    width: 40px;
+    text-align: center
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] [data-stat="Service Time"] {
+    width: 48px;
+    text-align: center
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] [data-stat=Contract] {
+    width: 245px;
+    white-space: normal;
+    line-height: 1.3;
+    overflow: auto;
+    text-align: left
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[data-stat=AAV],.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[data-stat=Contract] {
+    background-color: #ddd
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[data-stat=AAV],.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] td[data-stat=Contract] {
+    background-color: #444
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] [data-stat=Description] {
+    text-align: left;
+    width: calc(543px + 3em);
+    font-weight: 600;
+    border-right: 3px solid!important
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=fg-data-grid] [data-stat=Description] {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:hover td[data-stat=AAV],.payroll_roster-resource-payroll__IvpHA tr:hover td[data-stat=Contract] {
+    background-color: hsla(0,0%,80%,.9)
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA tr:hover td[data-stat=AAV],.dark-mode .payroll_roster-resource-payroll__IvpHA tr:hover td[data-stat=Contract] {
+    background-color: rgba(85,85,85,.9)
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color="FREE AGENT"] {
+    background-color: rgba(255,215,0,.8)
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color=player] {
+    background-color: rgba(0,128,0,.8);
+    color: #fff
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color=team],.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color^="CLUB OPTION"] {
+    background-color: rgba(206,36,49,.8);
+    color: #fff
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color=VESTING],.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color=vesting] {
+    background-color: rgba(70,130,180,.8);
+    color: #fff
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color="MUTUAL OPTION"],.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color=mutual] {
+    background-color: rgba(0,0,205,.8);
+    color: #fff
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:hover [data-contract-color=buyout] {
+    background-color: rgba(144,238,144,.8);
+    color: #000
+}
+
+.payroll_roster-resource-payroll__IvpHA td [class~=is-estimate],.payroll_roster-resource-payroll__IvpHA td[class~=is-estimate] {
+    font-style: italic
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=is-estimate-arb] {
+    background-color: #cfc;
+    font-style: italic
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA [class~=is-estimate-arb] {
+    background-color: rgba(204,255,204,.5)
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=is-negative] {
+    color: #ce2431
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_not40man__9OYWb td[data-stat=Player] {
+    background-color: initial
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_col-span-display-none__avFKw {
+    display: none
+}
+
+.payroll_roster-resource-payroll__IvpHA [class~=row-values-red] [class~=cell-painted] {
+    font-style: italic
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_payroll-table-notes__Eukko {
+    font-size: 12px;
+    text-align: right;
+    margin: 8px 0 12px
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_notes-explanation__RB7PD {
+    font-size: 14px;
+    border: 3px solid #000
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_notes-explanation__RB7PD h3 {
+    text-align: center;
+    color: #000;
+    margin: 10px 0
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_notes-explanation__RB7PD h3 {
+    color: #fff
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_notes-explanation__RB7PD ol {
+    list-style: decimal;
+    padding-right: 10px
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_notes-explanation__RB7PD ol li {
+    list-style: decimal;
+    padding: 5px 0;
+    line-height: 1.5
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_notes-explanation__RB7PD {
+    border-color: #555
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:not(.payroll_payroll-legend__rwaTP):hover [data-stat=PLAYER] {
+    background-color: rgba(221,221,221,.6)
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:not(.payroll_payroll-legend__rwaTP):hover [data-contract-color="FREE AGENT"] {
+    background-color: rgba(255,215,0,.6)
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:not(.payroll_payroll-legend__rwaTP):hover [data-contract-color=player] {
+    background-color: rgba(0,128,0,.6)
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:not(.payroll_payroll-legend__rwaTP):hover [data-contract-color=team] {
+    background-color: rgba(206,36,49,.6)
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:not(.payroll_payroll-legend__rwaTP):hover [data-contract-color=mutual] {
+    background-color: rgba(0,0,205,.6)
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:not(.payroll_payroll-legend__rwaTP):hover [data-contract-color=buyout] {
+    background-color: rgba(144,238,144,.6)
+}
+
+.payroll_roster-resource-payroll__IvpHA tr:not(.payroll_payroll-legend__rwaTP):hover [data-contract-color=vesting] {
+    background-color: rgba(70,130,180,.6)
+}
+
+.payroll_roster-resource-payroll__IvpHA th[data-stat=AAV],.payroll_roster-resource-payroll__IvpHA th[data-stat^="20"] {
+    text-align: center
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 tr:first-child {
+    border-top: 3px solid!important
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 tr:first-child {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 tr:first-child td:first-of-type,.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 tr:first-child th {
+    border-bottom: 2px solid #000!important
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 tr:first-child td:first-of-type,.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 tr:first-child th {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 tr:last-child {
+    border-bottom: 3px solid!important
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 tr:last-child {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ {
+    margin: 10px 0 5px
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_,.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 {
+    font-size: 14px
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ th,.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 th {
+    width: 208px;
+    border-left: 3px solid!important;
+    border-right: 1px solid #000!important;
+    text-align: right;
+    padding-right: 5px;
+    font-weight: 400
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ th,.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 th {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ td,.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 td {
+    width: 335px;
+    text-align: center;
+    border-right: 3px solid;
+    font-weight: 600
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ td,.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 td {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ td.payroll_legend__estimated-payroll__drYF2,.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 td.payroll_legend__estimated-payroll__drYF2 {
+    border-right: 3px solid!important
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ td.payroll_legend__estimated-payroll__drYF2,.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 td.payroll_legend__estimated-payroll__drYF2 {
+    border-color: #555!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ td[class~=text-legend],.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 td[class~=text-legend] {
+    font-size: 12px;
+    border-bottom: 3px solid #fff!important;
+    border-right: 3px solid #fff!important
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ td[class~=text-legend],.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 td[class~=text-legend] {
+    border-color: #1a1a1a!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ [class~=text-legend-sep],.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 [class~=text-legend-sep] {
+    padding: 0 4px
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ [data-contract-color],.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 [data-contract-color] {
+    font-size: 12px;
+    width: 90px;
+    text-align: center;
+    border: none;
+    border-top: 3px solid #fff!important;
+    border-bottom: 1px solid #fff!important;
+    font-weight: 400
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ [data-contract-color],.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__page-legend__93QQ5 [data-contract-color] {
+    border-top-color: #1a1a1a!important;
+    border-bottom-color: #1a1a1a!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ th {
+    width: 540px;
+    border: 0!important;
+    font-size: 12px;
+    text-align: center
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ th a {
+    text-decoration: underline
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ [class~=is-estimate-arb],.payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ [data-contract-color=arb] {
+    background-color: #cfc;
+    font-style: italic
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ [class~=is-estimate-arb],.dark-mode .payroll_roster-resource-payroll__IvpHA .payroll_contracts-header__arb-legend__JXYp_ [data-contract-color=arb] {
+    background-color: rgba(204,255,204,.5)
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_arb-note__DiYif td,.payroll_roster-resource-payroll__IvpHA .payroll_arb-note__DiYif th {
+    border: 0!important
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_contract-link__I30Su {
+    cursor: pointer;
+    display: inline
+}
+
+.payroll_roster-resource-payroll__IvpHA .payroll_col-contract-details__c_LMa,.payroll_roster-resource-payroll__IvpHA td[data-stat=contractDetails],.payroll_roster-resource-payroll__IvpHA th[data-col-id=contractDetails] {
+    width: 3em;
+    text-align: center;
+    padding: 0 2px!important
+}
+
+.payroll_roster-resource-payroll__IvpHA td[data-stat=contractDetails] {
+    width: 3em;
+    background-color: #ddd;
+    text-align: center;
+    padding: 0 2px!important
+}
+
+.dark-mode .payroll_roster-resource-payroll__IvpHA td[data-stat=contractDetails] {
+    background-color: #444
+}
+
+.payroll_payroll-contract-insert__EsFNk {
+    margin: 0;
+    font-size: 12x;
+    line-height: 1.3;
+    text-align: left
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_player-contract__ZNKMv {
+    padding: 10px 5px;
+    background-color: #efefef
+}
+
+.dark-mode .payroll_payroll-contract-insert__EsFNk .payroll_player-contract__ZNKMv {
+    background-color: #2a2a2a
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_payroll-note__Xmnbp {
+    padding: 6px 5px 16px;
+    font-size: 13px
+}
+
+@media(max-width: 1000px) {
+    .payroll_payroll-contract-insert__EsFNk .payroll_fg-data-grid__lvHRT .payroll_table-scroll__SkuSu {
+        overflow-x:scroll
+    }
+
+    .payroll_payroll-contract-insert__EsFNk .payroll_fg-data-grid__lvHRT .payroll_table-fixed__TB0bA {
+        display: block
+    }
+
+    .payroll_payroll-contract-insert__EsFNk [class~=fg-data-grid] [class~=table-scroll] {
+        overflow-x: scroll
+    }
+
+    .payroll_payroll-contract-insert__EsFNk [class~=fg-data-grid] [class~=table-fixed] {
+        display: block
+    }
+}
+
+.payroll_payroll-contract-insert__EsFNk {
+    position: relative
+}
+
+.payroll_payroll-contract-insert__EsFNk table {
+    table-layout: auto
+}
+
+.payroll_payroll-contract-insert__EsFNk table th {
+    background-color: #000 !important;
+    color: #fff;
+    border: 2px solid #fff
+}
+
+.dark-mode .payroll_payroll-contract-insert__EsFNk table th {
+    border-color: #555
+}
+
+.payroll_payroll-contract-insert__EsFNk table th {
+    width: 90px
+}
+
+.payroll_payroll-contract-insert__EsFNk table td,.payroll_payroll-contract-insert__EsFNk table th {
+    text-align: center!important
+}
+
+.payroll_payroll-contract-insert__EsFNk [class~=fg-data-grid] {
+    margin-top: 5px
+}
+
+.payroll_payroll-contract-insert__EsFNk [class~=fg-data-grid] [class~=table-wrapper-inner] {
+    overflow-x: auto;
+    padding-top: 0
+}
+
+.payroll_payroll-contract-insert__EsFNk [data-contract-color="FREE AGENT"] {
+    background-color: gold;
+    color: #000
+}
+
+.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color="FREE AGENT"] {
+    background-color: rgba(255,215,0,.8)
+}
+
+.payroll_payroll-contract-insert__EsFNk [data-contract-color=player],.payroll_payroll-contract-insert__EsFNk [data-contract-color^="PLAYER OPTION"] {
+    background-color: green;
+    color: #fff
+}
+
+.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color=player],.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color^="PLAYER OPTION"] {
+    background-color: #004d00
+}
+
+.payroll_payroll-contract-insert__EsFNk [data-contract-color=team],.payroll_payroll-contract-insert__EsFNk [data-contract-color^="CLUB OPTION"] {
+    background-color: #ce2431;
+    color: #fff
+}
+
+.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color=team],.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color^="CLUB OPTION"] {
+    background-color: rgb(162.5867768595,28.4132231405,38.673553719)
+}
+
+.payroll_payroll-contract-insert__EsFNk [data-contract-color="VESTING/CLUB"],.payroll_payroll-contract-insert__EsFNk [data-contract-color="VESTING/MUTUAL"],.payroll_payroll-contract-insert__EsFNk [data-contract-color=VESTING],.payroll_payroll-contract-insert__EsFNk [data-contract-color=vesting] {
+    background-color: #4682b4;
+    color: #fff
+}
+
+.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color="VESTING/CLUB"],.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color="VESTING/MUTUAL"],.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color=VESTING],.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color=vesting] {
+    background-color: rgb(55.72,103.48,143.28)
+}
+
+.payroll_payroll-contract-insert__EsFNk [data-contract-color="MUTUAL OPTION"],.payroll_payroll-contract-insert__EsFNk [data-contract-color=mutual] {
+    background-color: #0000cd;
+    color: #fff
+}
+
+.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color="MUTUAL OPTION"],.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color=mutual] {
+    background-color: #00009a
+}
+
+.payroll_payroll-contract-insert__EsFNk [data-contract-color=buyout] {
+    background-color: #90ee90;
+    color: #000
+}
+
+.dark-mode .payroll_payroll-contract-insert__EsFNk [data-contract-color=buyout] {
+    background-color: hsl(120,73.4375%,64.9019607843%)
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_contract-incentives__fgBDt {
+    margin-top: 15px;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: left
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_incentives-table__aBwlL {
+    width: 100%;
+    margin-top: 6px;
+    border-collapse: collapse
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_incentives-table__aBwlL td,.payroll_payroll-contract-insert__EsFNk .payroll_incentives-table__aBwlL th {
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    vertical-align: top
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_incentives-table__aBwlL th {
+    background-color: #000;
+    color: #fff;
+    font-weight: 700;
+    text-align: left
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_incentives-table__aBwlL td:first-child {
+    white-space: nowrap;
+    font-weight: 700;
+    width: 1%
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_incentives-legend__D_Z6G {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #666;
+    display: flex;
+    gap: 12px
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_option-legend__hK2eS {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600
+}
+
+.payroll_payroll-contract-insert__EsFNk .payroll_option-legend__hK2eS span {
+    padding: 2px 6px;
+    border-radius: 0
+}

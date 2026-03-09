@@ -15,6 +15,7 @@ let highlightLessThanOneYear = false;
 let lessThanOneYearColor = "#0000ff";
 let hideUnhighlighted = false;
 let currentUrl = "";
+const currentYear = new Date().getFullYear();
 
 async function initiate() {
   globalThis
@@ -151,38 +152,76 @@ function getFreeAgentYear(playerName) {
 
   if (player) {
     //remove items from player.ContractYears that are older than 2024
-    player.contractYears = player.contractYears.filter(function (element) {
-      return element.season >= 2025 && element.type != "FREE AGENT";
+    player.contractYearsCurrent = player.contractYears.filter(function (element) {
+      return element.Season >= currentYear && element.Type != "FREE AGENT";
     });
 
-    if (player.contractYears.length == 1) {
+    if (player.contractYearsCurrent.length == 1) {
       // player is free agent after current year
-      var val = "SIGNED THRU " + player.contractYears[0].season;
-      if (player.contractYears[0].arbSalaryProjection != null) {
+      var val = "SIGNED THRU " + player.contractYearsCurrent[0].Season;
+      if (player.contractYearsCurrent[0].ArbSalaryProjection != null) {
         val =
           val +
           " | " +
           globalThis.convertToMillions(
-            player.contractYears[0].arbSalaryProjection.toLocaleString()
+            player.contractYearsCurrent[0].ArbSalaryProjection.toLocaleString()
           );
       } else {
         val =
           val +
           " | " +
           globalThis.convertToMillions(
-            player.contractYears[0].salary.toLocaleString()
+            player.contractYearsCurrent[0].Salary.toLocaleString()
           );
+      }
+      // Additionally, check across all known contract entries for this player
+      // to see if any ARB or PRE-ARB years exist elsewhere and append
+      // that information so leaderboards show relevant ARB/PRE-ARB context.
+      try {
+        const playerNameLower =
+          player.contractSummary && player.contractSummary.playerName
+            ? player.contractSummary.playerName.toLowerCase()
+            : "";
+        if (playerNameLower && contractData && contractData.data) {
+          const matchesAll = contractData.data.filter((el) =>
+            el &&
+            el.contractSummary &&
+            el.contractSummary.playerName &&
+            el.contractSummary.playerName.toLowerCase() === playerNameLower,
+          );
+          const arbSeasons = [];
+          const preArbSeasons = [];
+          matchesAll.forEach((m) => {
+            (m.contractYearsCurrent || []).forEach((cy) => {
+              if (!cy || !cy.Type) return;
+              if (/PRE-ARB/i.test(cy.Type)) preArbSeasons.push(cy.Season);
+              else if (/ARB/i.test(cy.Type)) arbSeasons.push(cy.Season);
+            });
+          });
+          const parts = [];
+          if (preArbSeasons.length > 0) {
+            parts.push("PRE-ARB: " + preArbSeasons.filter((s) => s != null).join(", "));
+          }
+          if (arbSeasons.length > 0) {
+            parts.push("ARB: " + arbSeasons.filter((s) => s != null).join(", "));
+          }
+          if (parts.length > 0) {
+            val = val + " | " + parts.join(" | ");
+          }
+        }
+      } catch (e) {
+        // ignore and return basic val
       }
       return val;
     }
 
-    if (player.contractYears.length > 1) {
-      if (player.contractYears[0].type.includes("PRE-ARB")) {
+    if (player.contractYearsCurrent.length > 1) {
+      if (player.contractYearsCurrent[0].Type.includes("PRE-ARB")) {
         // Player is PreArb, calculate when they become arb eligible
         var arb1Year = "";
-        for (var i = 1; i < player.contractYears.length; i++) {
-          if (player.contractYears[i].type == "ARB 1") {
-            arb1Year = player.contractYears[i].season;
+        for (var i = 1; i < player.contractYearsCurrent.length; i++) {
+          if (player.contractYearsCurrent[i].Type == "ARB 1") {
+            arb1Year = player.contractYearsCurrent[i].Season;
             break;
           }
         }
@@ -191,35 +230,36 @@ function getFreeAgentYear(playerName) {
             "PREARB | ARB1 " +
             arb1Year +
             " | FINAL ARB " +
-            player.contractYears[player.contractYears.length - 1].season
+            player.contractYearsCurrent[player.contractYearsCurrent.length - 1].Season
           );
         }
       }
 
       if (
-        player.contractSummary.contractType == "Arbitration" ||
-        player.contractYears[0].type.includes("ARB") ||
-        player.contractYears[0].arbYear != 0
+        player.contractSummary.payrollType == "Arbitration" ||
+        player.contractSummary.ContractType == "Arbitration" ||
+        player.contractYearsCurrent[0].Type.includes("ARB") ||
+        player.contractYearsCurrent[0].ArbYear != 0
       ) {
         //Player Currently in ARB Year
-        var arbNum = player.contractYears[0].type.replace("ARB ", "");
+        var arbNum = player.contractYearsCurrent[0].Type.replace("ARB ", "");
         if (arbNum.includes("TBD") || arbNum.includes("GUARANTEE")) {
-          var tempArb = player.contractYears[1].type.replace("ARB ", "");
+          var tempArb = player.contractYearsCurrent[1].Type.replace("ARB ", "");
           arbNum = tempArb - 1;
-        } else if (player.contractYears[0].arbYear != 0) {
-          arbNum = player.contractYears[0].arbYear;
+        } else if (player.contractYearsCurrent[0].ArbYear != 0) {
+          arbNum = player.contractYearsCurrent[0].ArbYear;
         }
         return (
           "ARB" +
           arbNum +
           " | FINAL ARB " +
-          player.contractYears[player.contractYears.length - 1].season
+          player.contractYearsCurrent[player.contractYearsCurrent.length - 1].Season
         );
       }
       //sum all the salary for the years in player.contractYears
       var totalSalary = 0;
-      for (var i = 1; i < player.contractYears.length; i++) {
-        var tempSal = player.contractYears[i].salary;
+      for (var i = 1; i < player.contractYearsCurrent.length; i++) {
+        var tempSal = player.contractYearsCurrent[i].Salary;
         var sal = parseInt(tempSal);
         if (sal === sal) {
           totalSalary += sal;
@@ -378,7 +418,7 @@ function addFreeAgentYearColumn() {
         globalThis.updateHighlightColor(row, preArbColor);
       } else if (freeAgentYear.includes("ARB") && highlightArb) {
         globalThis.updateHighlightColor(row, arbColor);
-      } else if (freeAgentYear.includes("2025") && highlightLessThanOneYear) {
+      } else if (freeAgentYear.includes(currentYear) && highlightLessThanOneYear) {
         globalThis.updateHighlightColor(row, lessThanOneYearColor);
       }
       if (hideUnhighlighted) {
