@@ -13,6 +13,9 @@ let highlightPreArb = false;
 let preArbColor = "#00ff00";
 let highlightLessThanOneYear = false;
 let lessThanOneYearColor = "#0000ff";
+let highlightLastYearControl = false;
+let lastYearControl = new Date().getFullYear();
+let lastYearControlColor = "#ffa500";
 let hideUnhighlighted = false;
 let currentUrl = "";
 const currentYear = new Date().getFullYear();
@@ -62,6 +65,15 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     if (changes.lessThanOneYearColor) {
       lessThanOneYearColor = changes.lessThanOneYearColor.newValue;
     }
+    if (changes.highlightLastYearControl) {
+      highlightLastYearControl = changes.highlightLastYearControl.newValue;
+    }
+    if (changes.lastYearControl) {
+      lastYearControl = changes.lastYearControl.newValue;
+    }
+    if (changes.lastYearControlColor) {
+      lastYearControlColor = changes.lastYearControlColor.newValue;
+    }
     if (changes.hideUnhighlighted) {
       hideUnhighlighted = changes.hideUnhighlighted.newValue;
     }
@@ -78,13 +90,16 @@ chrome.storage.sync.get(
     "preArbColor",
     "highlightLessThanOneYear",
     "lessThanOneYearColor",
+    "highlightLastYearControl",
+    "lastYearControl",
+    "lastYearControlColor",
     "hideUnhighlighted",
   ],
   (data) => {
     if (data.highlightArb) {
       console.log(
         "Highlighting arbitration players with color:",
-        data.arbColor
+        data.arbColor,
       );
       highlightArb = data.highlightArb;
       arbColor = data.arbColor;
@@ -97,7 +112,7 @@ chrome.storage.sync.get(
     if (data.highlightPreArb) {
       console.log(
         "Highlighting prearbitration players with color:",
-        data.preArbColor
+        data.preArbColor,
       );
       highlightPreArb = data.highlightPreArb;
       preArbColor = data.preArbColor;
@@ -110,7 +125,7 @@ chrome.storage.sync.get(
     if (data.highlightLessThanOneYear) {
       console.log(
         "Highlighting one year remaining players with color:",
-        data.lessThanOneYearColor
+        data.lessThanOneYearColor,
       );
       highlightLessThanOneYear = data.highlightLessThanOneYear;
       lessThanOneYearColor = data.lessThanOneYearColor;
@@ -119,8 +134,29 @@ chrome.storage.sync.get(
       highlightLessThanOneYear = false;
       lessThanOneYearColor = "#0000ff"; // Default color
     }
+
+    if (data.highlightLastYearControl) {
+      console.log(
+        "Highlighting last year control players with color:",
+        data.lastYearControlColor,
+      );
+      highlightLastYearControl = data.highlightLastYearControl;
+      lastYearControl = data.lastYearControl;
+      lastYearControlColor = data.lastYearControlColor;
+    } else {
+      console.log("Removing Highlighting last year control players");
+      highlightLastYearControl = false;
+      lastYearControl = new Date().getFullYear();
+      lastYearControlColor = "#ffa500"; // Default color
+    }
+
+    if (data.hideUnhighlighted) {
+      console.log("Hiding unhighlighted players");
+      hideUnhighlighted = data.hideUnhighlighted;
+    }
+
     initiate();
-  }
+  },
 );
 
 function getFreeAgentYear(playerName) {
@@ -152,9 +188,11 @@ function getFreeAgentYear(playerName) {
 
   if (player) {
     //remove items from player.ContractYears that are older than 2024
-    player.contractYearsCurrent = player.contractYears.filter(function (element) {
-      return element.Season >= currentYear && element.Type != "FREE AGENT";
-    });
+    player.contractYearsCurrent = player.contractYears.filter(
+      function (element) {
+        return element.Season >= currentYear && element.Type != "FREE AGENT";
+      },
+    );
 
     if (player.contractYearsCurrent.length == 1) {
       // player is free agent after current year
@@ -164,14 +202,14 @@ function getFreeAgentYear(playerName) {
           val +
           " | " +
           globalThis.convertToMillions(
-            player.contractYearsCurrent[0].ArbSalaryProjection.toLocaleString()
+            player.contractYearsCurrent[0].ArbSalaryProjection.toLocaleString(),
           );
       } else {
         val =
           val +
           " | " +
           globalThis.convertToMillions(
-            player.contractYearsCurrent[0].Salary.toLocaleString()
+            player.contractYearsCurrent[0].Salary.toLocaleString(),
           );
       }
       // Additionally, check across all known contract entries for this player
@@ -183,11 +221,12 @@ function getFreeAgentYear(playerName) {
             ? player.contractSummary.playerName.toLowerCase()
             : "";
         if (playerNameLower && contractData && contractData.data) {
-          const matchesAll = contractData.data.filter((el) =>
-            el &&
-            el.contractSummary &&
-            el.contractSummary.playerName &&
-            el.contractSummary.playerName.toLowerCase() === playerNameLower,
+          const matchesAll = contractData.data.filter(
+            (el) =>
+              el &&
+              el.contractSummary &&
+              el.contractSummary.playerName &&
+              el.contractSummary.playerName.toLowerCase() === playerNameLower,
           );
           const arbSeasons = [];
           const preArbSeasons = [];
@@ -200,10 +239,14 @@ function getFreeAgentYear(playerName) {
           });
           const parts = [];
           if (preArbSeasons.length > 0) {
-            parts.push("PRE-ARB: " + preArbSeasons.filter((s) => s != null).join(", "));
+            parts.push(
+              "PRE-ARB: " + preArbSeasons.filter((s) => s != null).join(", "),
+            );
           }
           if (arbSeasons.length > 0) {
-            parts.push("ARB: " + arbSeasons.filter((s) => s != null).join(", "));
+            parts.push(
+              "ARB: " + arbSeasons.filter((s) => s != null).join(", "),
+            );
           }
           if (parts.length > 0) {
             val = val + " | " + parts.join(" | ");
@@ -230,7 +273,8 @@ function getFreeAgentYear(playerName) {
             "PREARB | ARB1 " +
             arb1Year +
             " | FINAL ARB " +
-            player.contractYearsCurrent[player.contractYearsCurrent.length - 1].Season
+            player.contractYearsCurrent[player.contractYearsCurrent.length - 1]
+              .Season
           );
         }
       }
@@ -253,7 +297,8 @@ function getFreeAgentYear(playerName) {
           "ARB" +
           arbNum +
           " | FINAL ARB " +
-          player.contractYearsCurrent[player.contractYearsCurrent.length - 1].Season
+          player.contractYearsCurrent[player.contractYearsCurrent.length - 1]
+            .Season
         );
       }
       //sum all the salary for the years in player.contractYears
@@ -314,136 +359,225 @@ function removeFreeAgentYearColumn(dataColId) {
   });
 }
 
-// Function to add the "Free Agent Year" column
-function addFreeAgentYearColumn() {
-  removeFreeAgentYearColumn("baseballsavantlink");
-  removeFreeAgentYearColumn("clubcontrol");
+// Create loading overlay
+function showLoadingOverlay() {
+  const overlay = document.createElement("div");
+  overlay.id = "fangraphs-extension-loading";
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  `;
 
-  if (
-    window.location.href.includes("team=,") ||
-    window.location.href.includes("team=0%2")
-  ) {
-    return;
-  }
+  const container = document.createElement("div");
+  container.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  `;
 
-  console.log("Adding Free Agent Year Column");
-  const table = document.querySelector(".table-scroll");
-  if (!table) return;
+  const spinner = document.createElement("div");
+  spinner.style.cssText = `
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  `;
 
-  // Add the header for the new column
-  const headerRow = table.querySelector("thead tr");
-  const lastHeader = headerRow.cells[headerRow.cells.length - 1];
-  const dataCol = lastHeader.attributes["data-col"].value;
+  const text = document.createElement("div");
+  text.textContent = "Loading Options from Fangraphs Extension";
+  text.style.cssText = `
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    color: #333;
+    text-align: center;
+  `;
 
-  if (
-    window.location.href.includes("type=24") &&
-    leadersMajorLeagueData.length != undefined
-  ) {
-    const savantLinkTH = document.createElement("th");
-    savantLinkTH.setAttribute("data-col-id", "BaseballSavantLink");
-    savantLinkTH.setAttribute("data-stat", "BaseballSavantLink");
-    savantLinkTH.classList.add("align-left");
-    savantLinkTH.innerText = "Baseball Savant";
-    headerRow.appendChild(savantLinkTH);
-  }
-
-  const dividerTH = document.createElement("th");
-  dividerTH.setAttribute("data-col", parseInt(dataCol) + 1);
-  dividerTH.setAttribute("data-col-id", "divider");
-  dividerTH.setAttribute("data-stat", "-- Line Break --");
-  dividerTH.classList.add("align-right");
-  dividerTH.innerText = "-- Line Break --";
-  headerRow.appendChild(dividerTH);
-
-  const newHeader = document.createElement("th");
-  newHeader.setAttribute("data-col", parseInt(dataCol) + 2);
-  newHeader.setAttribute("data-col-id", "ClubControl");
-  newHeader.setAttribute("data-stat", "ClubControl");
-  newHeader.classList.add("align-right");
-  newHeader.innerText = "Club Control Through";
-  headerRow.appendChild(newHeader);
-
-  // Add the free agent year data for each player
-  const rows = table.querySelectorAll("tbody tr");
-  rows.forEach((row) => {
-    const playerNameCell = row.querySelector("td a");
-    if (playerNameCell) {
-      const playerName = playerNameCell.innerText.trim();
-      const freeAgentYear = getFreeAgentYear(playerName);
-
-      if (
-        window.location.href.includes("type=24") &&
-        leadersMajorLeagueData.length != undefined
-      ) {
-        var playerData = leadersMajorLeagueData.find(function (element) {
-          return element.PlayerName.toLowerCase() == playerName.toLowerCase();
-        });
-
-        const savantLink = document.createElement("td");
-        savantLink.setAttribute("data-col-id", "BaseballSavantLink");
-        savantLink.setAttribute("data-stat", "BaseballSavantLink");
-        savantLink.classList.add("align-left");
-
-        if (playerData !== undefined) {
-          var savantUrl = `https://baseballsavant.mlb.com/savant-player/${playerData.PlayerNameRoute.toLowerCase().replace(
-            " ",
-            "-"
-          )}-${playerData.xMLBAMID}`;
-          var aTag = document.createElement("a");
-          aTag.setAttribute("href", savantUrl);
-          aTag.innerText = "Link";
-          aTag.setAttribute("style", "color:blue !important");
-          aTag.setAttribute("target", "_blank");
-          savantLink.appendChild(aTag);
-        }
-        row.appendChild(savantLink);
-      }
-
-      const divider = document.createElement("td");
-      divider.setAttribute("data-col-id", "divider");
-      divider.setAttribute("data-stat", "-- Line Break --");
-      divider.classList.add("align-right");
-      row.appendChild(divider);
-
-      const newCell = document.createElement("td");
-      newCell.setAttribute("data-col-id", "ClubControl");
-      newCell.setAttribute("data-stat", "ClubControl");
-      newCell.classList.add("align-right");
-      newCell.innerText = freeAgentYear;
-      row.appendChild(newCell);
-
-      globalThis.updateHighlightColor(row, "#ffffff");
-
-      if (freeAgentYear.includes("PREARB") && highlightPreArb) {
-        globalThis.updateHighlightColor(row, preArbColor);
-      } else if (freeAgentYear.includes("ARB") && highlightArb) {
-        globalThis.updateHighlightColor(row, arbColor);
-      } else if (freeAgentYear.includes(currentYear) && highlightLessThanOneYear) {
-        globalThis.updateHighlightColor(row, lessThanOneYearColor);
-      }
-      if (hideUnhighlighted) {
-        //get background color from the row
-        const bgColor = window
-          .getComputedStyle(row)
-          .getPropertyValue("background-color");
-        // if the background color is white, hide the row
-        if (bgColor === "rgb(255, 255, 255)") {
-          row.style.display = "none";
-        }
-      } else {
-        row.style.display = "table-row";
-      }
-      if (globalThis.attachEventListeners != undefined) {
-        globalThis.attachEventListeners();
-      }
+  // Add the spin animation
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-  });
+  `;
+  document.head.appendChild(styleSheet);
+
+  container.appendChild(spinner);
+  container.appendChild(text);
+  overlay.appendChild(container);
+  document.body.appendChild(overlay);
+}
+
+function hideLoadingOverlay() {
+  const overlay = document.getElementById("fangraphs-extension-loading");
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+// Function to add the "Free Agent Year" column
+async function addFreeAgentYearColumn() {
+  showLoadingOverlay();
+  // Force a browser reflow to ensure the loading overlay is rendered
+  await new Promise((resolve) =>
+    requestAnimationFrame(() => setTimeout(resolve, 0)),
+  );
+
+  try {
+    removeFreeAgentYearColumn("baseballsavantlink");
+    removeFreeAgentYearColumn("clubcontrol");
+
+    if (
+      window.location.href.includes("team=,") ||
+      window.location.href.includes("team=0%2")
+    ) {
+      return;
+    }
+
+    console.log("Adding Free Agent Year Column");
+    const table = document.querySelector(".table-scroll");
+    if (!table) return;
+
+    // Add the header for the new column
+    const headerRow = table.querySelector("thead tr");
+    const lastHeader = headerRow.cells[headerRow.cells.length - 1];
+    const dataCol = lastHeader.attributes["data-col"].value;
+
+    if (
+      window.location.href.includes("type=24") &&
+      leadersMajorLeagueData.length != undefined
+    ) {
+      const savantLinkTH = document.createElement("th");
+      savantLinkTH.setAttribute("data-col-id", "BaseballSavantLink");
+      savantLinkTH.setAttribute("data-stat", "BaseballSavantLink");
+      savantLinkTH.classList.add("align-left");
+      savantLinkTH.innerText = "Baseball Savant";
+      headerRow.appendChild(savantLinkTH);
+    }
+
+    const dividerTH = document.createElement("th");
+    dividerTH.setAttribute("data-col", parseInt(dataCol) + 1);
+    dividerTH.setAttribute("data-col-id", "divider");
+    dividerTH.setAttribute("data-stat", "-- Line Break --");
+    dividerTH.classList.add("align-right");
+    dividerTH.innerText = "-- Line Break --";
+    headerRow.appendChild(dividerTH);
+
+    const newHeader = document.createElement("th");
+    newHeader.setAttribute("data-col", parseInt(dataCol) + 2);
+    newHeader.setAttribute("data-col-id", "ClubControl");
+    newHeader.setAttribute("data-stat", "ClubControl");
+    newHeader.classList.add("align-right");
+    newHeader.innerText = "Club Control Through";
+    headerRow.appendChild(newHeader);
+
+    // Add the free agent year data for each player
+    const rows = table.querySelectorAll("tbody tr");
+    rows.forEach((row) => {
+      const playerNameCell = row.querySelector("td a");
+      if (playerNameCell) {
+        const playerName = playerNameCell.innerText.trim();
+        const freeAgentYear = getFreeAgentYear(playerName);
+
+        if (
+          window.location.href.includes("type=24") &&
+          leadersMajorLeagueData.length != undefined
+        ) {
+          var playerData = leadersMajorLeagueData.find(function (element) {
+            return element.PlayerName.toLowerCase() == playerName.toLowerCase();
+          });
+
+          const savantLink = document.createElement("td");
+          savantLink.setAttribute("data-col-id", "BaseballSavantLink");
+          savantLink.setAttribute("data-stat", "BaseballSavantLink");
+          savantLink.classList.add("align-left");
+
+          if (playerData !== undefined) {
+            var savantUrl = `https://baseballsavant.mlb.com/savant-player/${playerData.PlayerNameRoute.toLowerCase().replace(
+              " ",
+              "-",
+            )}-${playerData.xMLBAMID}`;
+            var aTag = document.createElement("a");
+            aTag.setAttribute("href", savantUrl);
+            aTag.innerText = "Link";
+            aTag.setAttribute("style", "color:blue !important");
+            aTag.setAttribute("target", "_blank");
+            savantLink.appendChild(aTag);
+          }
+          row.appendChild(savantLink);
+        }
+
+        const divider = document.createElement("td");
+        divider.setAttribute("data-col-id", "divider");
+        divider.setAttribute("data-stat", "-- Line Break --");
+        divider.classList.add("align-right");
+        row.appendChild(divider);
+
+        const newCell = document.createElement("td");
+        newCell.setAttribute("data-col-id", "ClubControl");
+        newCell.setAttribute("data-stat", "ClubControl");
+        newCell.classList.add("align-right");
+        newCell.innerText = freeAgentYear;
+        row.appendChild(newCell);
+
+        globalThis.updateHighlightColor(row, "#ffffff");
+
+        if (freeAgentYear.includes("PREARB") && highlightPreArb) {
+          globalThis.updateHighlightColor(row, preArbColor);
+        } else if (freeAgentYear.includes("ARB") && highlightArb) {
+          globalThis.updateHighlightColor(row, arbColor);
+        } else if (freeAgentYear.includes("2025") && highlightLessThanOneYear) {
+          globalThis.updateHighlightColor(row, lessThanOneYearColor);
+        } else if (highlightLastYearControl) {
+          let controlYear = null;
+
+          if (freeAgentYear.includes("SIGNED THRU")) {
+            controlYear = parseInt(freeAgentYear.split(" ")[2]);
+          } else if (freeAgentYear.includes("FINAL ARB")) {
+            controlYear = parseInt(freeAgentYear.split("FINAL ARB ")[1]);
+          }
+
+          if (controlYear === parseInt(lastYearControl, 10)) {
+            globalThis.updateHighlightColor(row, lastYearControlColor);
+          }
+        }
+        if (hideUnhighlighted) {
+          //get background color from the row
+          const bgColor = window
+            .getComputedStyle(row)
+            .getPropertyValue("background-color");
+          // if the background color is white, hide the row
+          if (bgColor === "rgb(255, 255, 255)") {
+            row.style.display = "none";
+          }
+        } else {
+          row.style.display = "table-row";
+        }
+        if (globalThis.attachEventListeners != undefined) {
+          globalThis.attachEventListeners();
+        }
+      }
+    });
+  } finally {
+    hideLoadingOverlay();
+  }
 }
 
 body = document.body;
 
 // Create an observer instance for the loading div
-const loadingDivObserver = new MutationObserver((mutationsList) => {
+const loadingDivObserver = new MutationObserver(async (mutationsList) => {
   if (window.location.href.includes("leaders/major-league")) {
     var url = window.location.href;
 
@@ -456,7 +590,7 @@ const loadingDivObserver = new MutationObserver((mutationsList) => {
     if (!qsUpdated) {
       for (let mutation of mutationsList) {
         if (mutation.target.localName == "tbody") {
-          addFreeAgentYearColumn();
+          await addFreeAgentYearColumn();
           qsUpdated = false;
           columnAdded = true;
           break;
@@ -469,7 +603,7 @@ const loadingDivObserver = new MutationObserver((mutationsList) => {
             removedNode.nodeType === Node.ELEMENT_NODE &&
             removedNode.classList.contains("fgui-loading-screen")
           ) {
-            addFreeAgentYearColumn();
+            await addFreeAgentYearColumn();
             columnAdded = true;
             qsUpdated = false;
             break;
@@ -484,22 +618,23 @@ const loadingDivObserver = new MutationObserver((mutationsList) => {
   }
 });
 
-const initialObserver = new MutationObserver((mutations) => {
+const initialObserver = new MutationObserver(async (mutations) => {
   var processed = false;
   if (window.location.href.includes("leaders/major-league")) {
-    mutations.forEach(() => {
+    for (const mutation of mutations) {
       if (document.querySelector(".table-scroll")) {
         const table = document.querySelector(".table-scroll");
         if (
           table.querySelectorAll("tbody tr").length > 1 &&
           processed == false
         ) {
-          initiate();
+          await initiate();
           processed = true;
           initialObserver.disconnect();
+          break;
         }
       }
-    });
+    }
     currentUrl = window.location.href;
   }
 });
@@ -512,9 +647,9 @@ initialObserver.observe(body, {
 // Start observing the entire body for additions and removals of loading divs
 loadingDivObserver.observe(body, { childList: true, subtree: true });
 
-function updateUI() {
+async function updateUI() {
   console.log("Updating UI with new settings...");
-  addFreeAgentYearColumn();
+  await addFreeAgentYearColumn();
 }
 
 const script = document.createElement("script");
