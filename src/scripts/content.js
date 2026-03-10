@@ -537,7 +537,7 @@ async function addFreeAgentYearColumn() {
           globalThis.updateHighlightColor(row, preArbColor);
         } else if (freeAgentYear.includes("ARB") && highlightArb) {
           globalThis.updateHighlightColor(row, arbColor);
-        } else if (freeAgentYear.includes("2025") && highlightLessThanOneYear) {
+        } else if (freeAgentYear.includes(currentYear) && highlightLessThanOneYear) {
           globalThis.updateHighlightColor(row, lessThanOneYearColor);
         } else if (highlightLastYearControl) {
           let controlYear = null;

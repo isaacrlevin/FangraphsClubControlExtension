@@ -30,12 +30,20 @@ globalThis.getLuminance = (hex) => {
 // Function to update the UI with the highlight color
 globalThis.updateHighlightColor = (element, color) => {
   element.style.setProperty("background-color", color, "important");
-  const textColor = globalThis.getLuminance(color) < 128 ? "white" : "black";
+  const isDark = globalThis.getLuminance(color) < 128;
+  const textColor = isDark ? "white" : "black";
   element.style.setProperty("color", textColor, "important");
 
   // Update the color of any anchor tags within the element
   const anchorTags = element.getElementsByTagName("a");
   for (let anchor of anchorTags) {
     anchor.style.setProperty("color", textColor, "important");
+  }
+
+  // Update Club Control cells which have a CSS link color that overrides row color inheritance
+  const clubControlCells = element.querySelectorAll('td[data-col-id="ClubControl"]');
+  const linkColor = isDark ? "#88ccff" : "#0066cc";
+  for (let cell of clubControlCells) {
+    cell.style.setProperty("color", linkColor, "important");
   }
 }
