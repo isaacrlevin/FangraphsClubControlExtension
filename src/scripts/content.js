@@ -18,7 +18,6 @@ let lastYearControl = new Date().getFullYear();
 let lastYearControlColor = "#ffa500";
 let hideUnhighlighted = false;
 let currentUrl = "";
-const currentYear = new Date().getFullYear();
 
 async function initiate() {
   globalThis
@@ -190,7 +189,7 @@ function getFreeAgentYear(playerName) {
     //remove items from player.ContractYears that are older than 2024
     player.contractYearsCurrent = player.contractYears.filter(
       function (element) {
-        return element.Season >= currentYear && element.Type != "FREE AGENT";
+        return element.Season >= lastYearControl && element.Type != "FREE AGENT";
       },
     );
 
@@ -537,7 +536,7 @@ async function addFreeAgentYearColumn() {
           globalThis.updateHighlightColor(row, preArbColor);
         } else if (freeAgentYear.includes("ARB") && highlightArb) {
           globalThis.updateHighlightColor(row, arbColor);
-        } else if (freeAgentYear.includes(currentYear) && highlightLessThanOneYear) {
+        } else if (freeAgentYear.includes(lastYearControl) && highlightLessThanOneYear) {
           globalThis.updateHighlightColor(row, lessThanOneYearColor);
         } else if (highlightLastYearControl) {
           let controlYear = null;

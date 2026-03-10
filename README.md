@@ -17,6 +17,3 @@ If you like this extension, feel free to [buy me a coffee!](https://buymeacoffee
 - Enable "Developer mode",
 - Click "Load unpacked",
 - Select the `src` folder you built above.
-
-
-
