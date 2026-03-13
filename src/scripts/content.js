@@ -7,14 +7,20 @@ if (typeof contractData === "undefined" || contractData === null) {
 leadersMajorLeagueData = {};
 let qsUpdated = false;
 let columnAdded = false;
+let currentYear = new Date().getFullYear();
+
 let highlightArb = false;
 let arbColor = "#ff0000";
+
 let highlightPreArb = false;
 let preArbColor = "#00ff00";
+
 let highlightLessThanOneYear = false;
 let lessThanOneYearColor = "#0000ff";
+
 let highlightLastYearControl = false;
 let lastYearControl = new Date().getFullYear();
+
 let lastYearControlColor = "#ffa500";
 let hideUnhighlighted = false;
 let currentUrl = "";
@@ -189,7 +195,7 @@ function getFreeAgentYear(playerName) {
     //remove items from player.ContractYears that are older than 2024
     player.contractYearsCurrent = player.contractYears.filter(
       function (element) {
-        return element.Season >= lastYearControl && element.Type != "FREE AGENT";
+        return element.Season >= currentYear && !element.Type.includes("FREE AGENT");
       },
     );
 
@@ -201,15 +207,19 @@ function getFreeAgentYear(playerName) {
           val +
           " | " +
           globalThis.convertToMillions(
-            player.contractYearsCurrent[0].ArbSalaryProjection.toLocaleString(),
+            (
+              player.contractYearsCurrent[0].ArbSalaryProjection || 0
+            ).toLocaleString(),
           );
       } else {
-        val =
-          val +
-          " | " +
-          globalThis.convertToMillions(
-            player.contractYearsCurrent[0].Salary.toLocaleString(),
-          );
+        if (player.contractYearsCurrent[0].Salary != null) {
+          val =
+            val +
+            " | " +
+            globalThis.convertToMillions(
+              (player.contractYearsCurrent[0].Salary || 0).toLocaleString(),
+            );
+        }
       }
       // Additionally, check across all known contract entries for this player
       // to see if any ARB or PRE-ARB years exist elsewhere and append
@@ -536,9 +546,12 @@ async function addFreeAgentYearColumn() {
           globalThis.updateHighlightColor(row, preArbColor);
         } else if (freeAgentYear.includes("ARB") && highlightArb) {
           globalThis.updateHighlightColor(row, arbColor);
-        } else if (freeAgentYear.includes(lastYearControl) && highlightLessThanOneYear) {
-          globalThis.updateHighlightColor(row, lessThanOneYearColor);
-        } else if (highlightLastYearControl) {
+        } else if (
+          freeAgentYear.includes(lastYearControl) &&
+          highlightLastYearControl
+        ) {
+          globalThis.updateHighlightColor(row, lastYearControlColor);
+        } else if (highlightLessThanOneYear) {
           let controlYear = null;
 
           if (freeAgentYear.includes("SIGNED THRU")) {
@@ -547,8 +560,8 @@ async function addFreeAgentYearColumn() {
             controlYear = parseInt(freeAgentYear.split("FINAL ARB ")[1]);
           }
 
-          if (controlYear === parseInt(lastYearControl, 10)) {
-            globalThis.updateHighlightColor(row, lastYearControlColor);
+          if (controlYear === parseInt(currentYear, 10)) {
+            globalThis.updateHighlightColor(row, lessThanOneYearColor);
           }
         }
         if (hideUnhighlighted) {

@@ -246,7 +246,7 @@ function buildBreakdownTableDiv(playerData) {
       continue;
     }
 
-    if (cy.Type === "FREE AGENT") {
+    if (cy.Type.includes("FREE AGENT")) {
       if (!hasOptions && i === years.length - 1) {
         const trFA = document.createElement("tr");
         const season = document.createElement("td");
