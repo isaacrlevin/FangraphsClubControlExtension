@@ -1,4 +1,5 @@
 document.getElementById("save").addEventListener("click", () => {
+  const turnOffExtension = document.getElementById("turnOffExtension").checked;
   const highlightArb = document.getElementById("highlightArb").checked;
   const arbColor = document.getElementById("arbColor").value;
   const highlightPreArb = document.getElementById("highlightPreArb").checked;
@@ -17,6 +18,7 @@ document.getElementById("save").addEventListener("click", () => {
 
   chrome.storage.sync.set(
     {
+      turnOffExtension,
       highlightArb,
       arbColor,
       highlightPreArb,
@@ -37,31 +39,44 @@ document.getElementById("save").addEventListener("click", () => {
   );
 });
 
-//add event listener for any checkbox and check to see if the hideUnhighlighted checkbox should be enabled or disabled
-document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-  checkbox.addEventListener("change", () => {
-    const highlightArb = document.getElementById("highlightArb").checked;
-    const highlightPreArb = document.getElementById("highlightPreArb").checked;
-    const highlightLessThanOneYear = document.getElementById("highlightLessThanOneYear").checked;
-    const highlightLastYearControl = document.getElementById("highlightLastYearControl").checked;
+function refreshOptionAvailability() {
+  const turnOffExtension = document.getElementById("turnOffExtension").checked;
+  const highlightArb = document.getElementById("highlightArb").checked;
+  const highlightPreArb = document.getElementById("highlightPreArb").checked;
+  const highlightLessThanOneYear = document.getElementById("highlightLessThanOneYear").checked;
+  const highlightLastYearControl = document.getElementById("highlightLastYearControl").checked;
+  const hideUnhighlightedCheckbox = document.getElementById("hideUnhighlighted");
 
-    //only allow the hideUnhighlighted checkbox if the user has enabled at least one of the other options
-    const anyHighlightEnabled =
-      highlightArb || highlightPreArb || highlightLessThanOneYear || highlightLastYearControl;
-    if (!anyHighlightEnabled) {
-      document.getElementById("hideUnhighlighted").disabled = true;
-      document.getElementById("hideUnhighlighted").checked = false;
+  const dependentInputs = document.querySelectorAll("input, select");
+  dependentInputs.forEach((input) => {
+    if (input.id !== "turnOffExtension") {
+      input.disabled = turnOffExtension;
     }
   });
-});
 
-// document
-//   .getElementById("yearsLeftSlider")
-//   .addEventListener("input", function () {
-//     const slider = document.getElementById("yearsLeftSlider");
-//     const valueDisplay = document.getElementById("yearsLeftValue");
-//     valueDisplay.textContent = slider.value;
-//   });
+  if (turnOffExtension) {
+    hideUnhighlightedCheckbox.checked = false;
+    return;
+  }
+
+  // Only allow hideUnhighlighted when at least one highlight option is enabled.
+  const anyHighlightEnabled =
+    highlightArb ||
+    highlightPreArb ||
+    highlightLessThanOneYear ||
+    highlightLastYearControl;
+
+  hideUnhighlightedCheckbox.disabled = !anyHighlightEnabled;
+  if (!anyHighlightEnabled) {
+    hideUnhighlightedCheckbox.checked = false;
+  }
+}
+
+["turnOffExtension", "highlightArb", "highlightPreArb", "highlightLessThanOneYear", "highlightLastYearControl"].forEach(
+  (id) => {
+    document.getElementById(id).addEventListener("change", refreshOptionAvailability);
+  },
+);
 
 // Initialize the year dropdown
 function initializeYearDropdown() {
@@ -80,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   chrome.storage.sync.get(
     [
+      "turnOffExtension",
       "highlightArb",
       "arbColor",
       "highlightPreArb",
@@ -92,6 +108,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "hideUnhighlighted",
     ],
     (data) => {
+      document.getElementById("turnOffExtension").checked =
+        data.turnOffExtension || false;
       document.getElementById("highlightArb").checked =
         data.highlightArb || false;
       document.getElementById("arbColor").value = data.arbColor || "#ff0000";
@@ -111,6 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
         data.lastYearControlColor || "#ffa500";
       document.getElementById("hideUnhighlighted").checked =
         data.hideUnhighlighted || false;
+
+      refreshOptionAvailability();
     }
   );
 });

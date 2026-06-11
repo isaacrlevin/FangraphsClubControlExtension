@@ -11,6 +11,7 @@ let currentYear = new Date().getFullYear();
 
 let highlightArb = false;
 let arbColor = "#ff0000";
+let turnOffExtension = false;
 
 let highlightPreArb = false;
 let preArbColor = "#00ff00";
@@ -26,6 +27,11 @@ let hideUnhighlighted = false;
 let currentUrl = "";
 
 async function initiate() {
+  if (turnOffExtension) {
+    disableExtensionUI();
+    return;
+  }
+
   globalThis
     .payrollData()
     .then((data) => {
@@ -36,6 +42,33 @@ async function initiate() {
     .catch((error) => {
       console.error("Error getting payroll data:", error);
     });
+}
+
+function clearExtensionRowStyling() {
+  const table = document.querySelector(".table-scroll");
+  if (!table) return;
+
+  const rows = table.querySelectorAll("tbody tr");
+  rows.forEach((row) => {
+    row.style.removeProperty("background-color");
+    row.style.removeProperty("color");
+    row.style.display = "table-row";
+
+    row.querySelectorAll("a").forEach((anchor) => {
+      anchor.style.removeProperty("color");
+    });
+
+    row.querySelectorAll('td[data-col-id="ClubControl"]').forEach((cell) => {
+      cell.style.removeProperty("color");
+    });
+  });
+}
+
+function disableExtensionUI() {
+  removeFreeAgentYearColumn("baseballsavantlink");
+  removeFreeAgentYearColumn("divider");
+  removeFreeAgentYearColumn("clubcontrol");
+  clearExtensionRowStyling();
 }
 
 function getStats() {
@@ -54,6 +87,9 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === "sync") {
     if (changes.highlightArb) {
       highlightArb = changes.highlightArb.newValue;
+    }
+    if (changes.turnOffExtension) {
+      turnOffExtension = changes.turnOffExtension.newValue;
     }
     if (changes.arbColor) {
       arbColor = changes.arbColor.newValue;
@@ -89,6 +125,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
 chrome.storage.sync.get(
   [
+    "turnOffExtension",
     "highlightArb",
     "arbColor",
     "highlightPreArb",
@@ -101,6 +138,8 @@ chrome.storage.sync.get(
     "hideUnhighlighted",
   ],
   (data) => {
+    turnOffExtension = data.turnOffExtension || false;
+
     if (data.highlightArb) {
       console.log(
         "Highlighting arbitration players with color:",
@@ -437,6 +476,11 @@ function hideLoadingOverlay() {
 
 // Function to add the "Free Agent Year" column
 async function addFreeAgentYearColumn() {
+  if (turnOffExtension) {
+    disableExtensionUI();
+    return;
+  }
+
   showLoadingOverlay();
   // Force a browser reflow to ensure the loading overlay is rendered
   await new Promise((resolve) =>
@@ -661,6 +705,10 @@ loadingDivObserver.observe(body, { childList: true, subtree: true });
 
 async function updateUI() {
   console.log("Updating UI with new settings...");
+  if (turnOffExtension) {
+    disableExtensionUI();
+    return;
+  }
   await addFreeAgentYearColumn();
 }
 
