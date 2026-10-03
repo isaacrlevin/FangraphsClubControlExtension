@@ -231,16 +231,44 @@ function getFreeAgentYear(playerName) {
   }
 
   if (player) {
-    //remove items from player.ContractYears that are older than 2024
+    const today = new Date();
+    const firstAcquirableYear =
+      today.getFullYear() +
+      (today.getMonth() > 7 ||
+      (today.getMonth() === 7 && today.getDate() > 15)
+        ? 1
+        : 0);
     player.contractYearsCurrent = player.contractYears.filter(
       function (element) {
-        return element.Season >= currentYear && !element.Type.includes("FREE AGENT");
+        return element.Season >= firstAcquirableYear && !element.Type.includes("FREE AGENT");
       },
-    );
+    ).map((element) => {
+      const contract = playerList.find((entry) =>
+        entry.contractYears.includes(element),
+      );
+      const summary = contract.contractSummary;
+      const seasonStart = contract.contractYears.find((year) => year.SeasonStart != null);
+      const team = contract.contractYears.find((year) => year.TeamId != null);
+      const playerId = contract.contractYears.find((year) => year.MLBAMID != null);
+      const arbType = element.Type.match(/\bARB\s*(\d+)/i);
+      const inferredArbYear = /PRE-ARB/i.test(element.Type)
+        ? 1
+        : arbType
+          ? Number(arbType[1])
+          : 0;
+
+      return {
+        ...element,
+        SeasonStart: element.SeasonStart ?? summary.startSeason ?? seasonStart?.SeasonStart,
+        TeamId: element.TeamId ?? summary.TeamId ?? team?.TeamId,
+        MLBAMID: element.MLBAMID ?? summary.MLBAMID ?? playerId?.MLBAMID,
+        ArbYear: element.ArbYear ?? inferredArbYear,
+      };
+    });
 
     if (player.contractYearsCurrent.length == 1) {
       // player is free agent after current year
-      var val = "SIGNED THRU " + player.contractYearsCurrent[0].Season;
+      var val = "SIGNED THRU " + player.contractYearsCurrent[0].Season + " | 1 YEAR";
       if (player.contractYearsCurrent[0].ArbSalaryProjection != null) {
         val =
           val +
@@ -351,7 +379,7 @@ function getFreeAgentYear(playerName) {
       }
       //sum all the salary for the years in player.contractYears
       var totalSalary = 0;
-      for (var i = 1; i < player.contractYearsCurrent.length; i++) {
+      for (var i = 0; i < player.contractYearsCurrent.length; i++) {
         var tempSal = player.contractYearsCurrent[i].Salary;
         var sal = parseInt(tempSal);
         if (sal === sal) {
@@ -362,6 +390,8 @@ function getFreeAgentYear(playerName) {
         "SIGNED THRU " +
         player.contractSummary.endSeason +
         " | " +
+        player.contractYearsCurrent.length +
+        " YEARS | " +
         globalThis.convertToMillions(totalSalary.toLocaleString())
       );
     }
