@@ -124,6 +124,13 @@ td[data-col-id="ClubControl"]:hover {
   color: #004499;
 }
 
+td[data-col-id="ClubControl"].club-control-has-options::after {
+    content: "*";
+    vertical-align: super;
+    font-size: 0.75em;
+    margin-left: 2px;
+    text-decoration: none;
+}
 
 .payroll_roster-resource-payroll__IvpHA {
     display: flex;

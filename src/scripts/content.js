@@ -203,6 +203,31 @@ chrome.storage.sync.get(
   },
 );
 
+function getFirstAcquirableYear() {
+  const today = new Date();
+  return today.getFullYear() +
+    (today.getMonth() > 7 || (today.getMonth() === 7 && today.getDate() > 15) ? 1 : 0);
+}
+
+function addContractOptionIndicator(cell, playerName) {
+  const firstAcquirableYear = getFirstAcquirableYear();
+  const optionYears = (contractData.data || [])
+    .filter((entry) =>
+      entry.contractSummary.playerName.toLowerCase() === playerName.toLowerCase(),
+    )
+    .flatMap((entry) => entry.contractYears)
+    .filter((year) => year.Season >= firstAcquirableYear && /OPTION/i.test(year.Type))
+    .sort((first, second) => first.Season - second.Season);
+
+  if (optionYears.length === 0) return;
+
+  const options = [...new Set(optionYears.map((year) => `${year.Season}: ${year.Type}`))];
+  const description = `Includes contract options: ${options.join("; ")}. Option years and salary are not guaranteed.`;
+  cell.classList.add("club-control-has-options");
+  cell.title = description;
+  cell.setAttribute("aria-label", `${cell.innerText}. ${description}`);
+}
+
 function getFreeAgentYear(playerName) {
   if (contractData.data === undefined) {
     console.log("No free agent data available");
@@ -231,13 +256,7 @@ function getFreeAgentYear(playerName) {
   }
 
   if (player) {
-    const today = new Date();
-    const firstAcquirableYear =
-      today.getFullYear() +
-      (today.getMonth() > 7 ||
-      (today.getMonth() === 7 && today.getDate() > 15)
-        ? 1
-        : 0);
+    const firstAcquirableYear = getFirstAcquirableYear();
     player.contractYearsCurrent = player.contractYears.filter(
       function (element) {
         return element.Season >= firstAcquirableYear && !element.Type.includes("FREE AGENT");
@@ -612,6 +631,7 @@ async function addFreeAgentYearColumn() {
         newCell.setAttribute("data-stat", "ClubControl");
         newCell.classList.add("align-right");
         newCell.innerText = freeAgentYear;
+        addContractOptionIndicator(newCell, playerName);
         row.appendChild(newCell);
 
         globalThis.updateHighlightColor(row, "#ffffff");
